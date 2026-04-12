@@ -117,6 +117,18 @@ async function _sdkConnect() {
   }
 }
 
+async function _sdkDisconnect() {
+  if (!S.paramAvatarId || !channelUUID) return;
+  try {
+    await fetch(S.API_BASE + '/api/v1/sdk/disconnect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ avatar_id: parseInt(S.paramAvatarId, 10), channel_uuid: channelUUID }),
+    });
+  } catch (e) { /* non-critical */ }
+  _sdkConnected = false;
+}
+
 function _sendAssistCommand(text) {
   if (S.chatWs && S.chatWs.readyState === 1) {
     S.chatWs.send(JSON.stringify({ type: 'message', text }));
@@ -181,6 +193,7 @@ window.toggleCodeAssist = function() {
     url.searchParams.set('assist', '1');
     history.replaceState(null, '', url.toString());
   } else {
+    _sdkDisconnect();
     _sendAssistCommand('코드 비서모드 오프');
     addChatMsg('system', '⚡ Code Assist OFF');
 
@@ -190,13 +203,21 @@ window.toggleCodeAssist = function() {
   }
 };
 
-// ─── Auto-enable if ?assist=1 (refresh persistence) ───────────
-if (autoAssist && channelUUID) {
-  // Wait for WebSocket to be ready, then activate
-  const _autoCheck = setInterval(() => {
-    if (S.chatWs && S.chatWs.readyState === 1) {
-      clearInterval(_autoCheck);
-      // Small delay to let initial greeting flow settle
+// ─── Entry: ensure clean state ────────────────────────────────
+// On every room entry, reset assist to OFF on the server side.
+// This prevents stale channel routing from previous sessions.
+function _ensureAssistOff() {
+  _sdkDisconnect();
+  _sendAssistCommand('코드 비서모드 오프');
+}
+
+// Wait for WS ready, then either auto-enable or reset to OFF
+const _entryCheck = setInterval(() => {
+  if (S.chatWs && S.chatWs.readyState === 1) {
+    clearInterval(_entryCheck);
+
+    if (autoAssist && channelUUID) {
+      // ?assist=1 — auto-enable after greeting settles
       setTimeout(() => {
         _assistActive = true;
         _updateAssistUI(true);
@@ -204,7 +225,10 @@ if (autoAssist && channelUUID) {
         _sendAssistCommand('코드 비서모드 온');
         addChatMsg('system', '⚡ Code Assist ON (auto)');
       }, 2000);
+    } else {
+      // Default: explicitly reset to OFF
+      setTimeout(() => _ensureAssistOff(), 1500);
     }
-  }, 500);
-  setTimeout(() => clearInterval(_autoCheck), 30000);
-}
+  }
+}, 500);
+setTimeout(() => clearInterval(_entryCheck), 30000);
