@@ -233,12 +233,13 @@ NVatarSDK.clearLookupResults();  // clear all
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `NVATAR_CHANNEL_UUID` | auto-generated | Channel identifier (match with lobby UUID) |
-| `NVATAR_CHANNEL_PORT` | `8789` | Channel HTTP server port |
+The only variable you need to set is `NVATAR_CHANNEL_UUID` — it must match the UUID generated in the lobby page.
 
-> `NVATAR_CHANNEL_UUID` is the only variable you normally need to set. It must match the UUID generated in the lobby page.
+```bash
+NVATAR_CHANNEL_UUID=<your-uuid> claude --dangerously-load-development-channels server:nvatar
+```
+
+All other configuration (server URL, port, authentication) is handled automatically.
 
 ### Heartbeat
 

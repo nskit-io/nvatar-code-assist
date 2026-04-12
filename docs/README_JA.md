@@ -236,10 +236,13 @@ NVatarSDK.clearLookupResults();  // clear all
 
 | 変数 | デフォルト | 説明 |
 |------|-----------|------|
-| `NVATAR_CHANNEL_UUID` | 自動生成 | チャネル識別子（ロビーで生成したUUIDと同一に設定） |
-| `NVATAR_CHANNEL_PORT` | `8789` | チャネルHTTPサーバーポート |
+設定が必要な変数は`NVATAR_CHANNEL_UUID`のみです。ロビーで生成したUUIDと一致させてください。
 
-> 通常設定が必要なのは`NVATAR_CHANNEL_UUID`のみです。ロビーで生成したUUIDと一致させてください。
+```bash
+NVATAR_CHANNEL_UUID=<your-uuid> claude --dangerously-load-development-channels server:nvatar
+```
+
+その他の設定（サーバーURL、ポート、認証）は自動的に処理されます。
 
 ### ハートビート
 

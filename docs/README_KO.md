@@ -235,10 +235,13 @@ NVatarSDK.clearLookupResults();  // clear all
 
 | 변수 | 기본값 | 설명 |
 |------|--------|------|
-| `NVATAR_CHANNEL_UUID` | 자동 생성 | 채널 식별자 (로비에서 생성한 UUID와 동일하게 설정) |
-| `NVATAR_CHANNEL_PORT` | `8789` | 채널 HTTP 서버 포트 |
+설정이 필요한 변수는 `NVATAR_CHANNEL_UUID` 하나뿐입니다. 로비에서 생성한 UUID와 일치해야 합니다.
 
-> `NVATAR_CHANNEL_UUID`만 설정하면 됩니다. 로비에서 생성한 UUID와 일치해야 합니다.
+```bash
+NVATAR_CHANNEL_UUID=<your-uuid> claude --dangerously-load-development-channels server:nvatar
+```
+
+그 외 설정(서버 URL, 포트, 인증)은 자동으로 처리됩니다.
 
 ### 하트비트
 

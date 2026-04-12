@@ -236,10 +236,13 @@ NVatarSDK.clearLookupResults();  // clear all
 
 | 变量 | 默认值 | 说明 |
 |------|--------|------|
-| `NVATAR_CHANNEL_UUID` | 自动生成 | 通道标识符（需与大厅生成的UUID一致） |
-| `NVATAR_CHANNEL_PORT` | `8789` | 通道HTTP服务器端口 |
+唯一需要设置的变量是`NVATAR_CHANNEL_UUID`，必须与大厅页面生成的UUID匹配。
 
-> 通常只需设置`NVATAR_CHANNEL_UUID`。必须与大厅页面生成的UUID匹配。
+```bash
+NVATAR_CHANNEL_UUID=<your-uuid> claude --dangerously-load-development-channels server:nvatar
+```
+
+其他配置（服务器URL、端口、认证）均自动处理。
 
 ### 心跳机制
 
