@@ -33,6 +33,29 @@ sequenceDiagram
     A->>U: Avatar speaks full result + Code Panel
 ```
 
+## Claude Code 채널이란?
+
+NVatar Code Assist는 **Claude Code Channel**을 사용합니다. MCP 기반 플러그인 시스템으로, 외부 앱이 실행 중인 Claude Code 세션과 통신할 수 있게 해줍니다.
+
+```mermaid
+flowchart LR
+    A[Your App] -->|MCP stdio| B[Channel Server]
+    B -->|notification| C[Claude Code]
+    C -->|reply tool| B
+    B -->|callback| A
+```
+
+`channel/` 디렉토리에 바로 사용 가능한 Bun MCP 서버가 포함되어 있습니다. 별도 설정 없이 설치 후 실행하면 됩니다:
+
+```bash
+cd channel && bun install          # 최초 1회
+NVATAR_CHANNEL_UUID=<uuid> claude --dangerously-load-development-channels server:nvatar
+```
+
+Claude Code가 채널 서버를 자동으로 실행합니다. 채널은 NVatar 서버에 HTTP로 등록되고, 메시지를 양방향으로 중계합니다.
+
+> Claude Code Channel과 MCP에 대한 자세한 내용은 [Claude Code 문서](https://docs.anthropic.com/en/docs/claude-code)를 참고하세요.
+
 ## 빠른 시작
 
 ### 사전 준비
