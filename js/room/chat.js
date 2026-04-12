@@ -170,7 +170,8 @@ export function addCodeResult(data) {
 
   block.innerHTML = `
     <div class="cb-req" onclick="var r=document.getElementById('${resId}');r.style.display=r.style.display==='none'?'block':'none'">
-      <span>▶ ${_escHtml(data.request || '')} <span class="cb-time">${time}</span></span>
+      <span class="cb-title" title="${_escHtml(data.request || '')}">▶ ${_escHtml(data.request || '')}</span>
+      <span class="cb-time">${time}</span>
       <button class="cb-close" onclick="event.stopPropagation();this.closest('.code-block').remove()">&times;</button>
     </div>
     <div class="cb-res${isError ? ' error' : ''}" id="${resId}">${_escHtml(data.response || '')}</div>
