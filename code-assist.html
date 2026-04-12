@@ -108,6 +108,7 @@ canvas { display: block; }
     <div class="controls">
       <button data-i18n="lobby" onclick="location.href='/static/index.html'" style="padding:4px 10px;border:1px solid #334155;border-radius:6px;background:transparent;color:#94a3b8;cursor:pointer;font-size:12px;">← Lobby</button>
       <span data-i18n="dblClickMove" style="font-size:11px;color:#64748b;">Double-click: Move</span>
+      <button id="btnAssist" onclick="toggleCodeAssist()" style="transition:all 0.2s;">⚡ Assist</button>
       <button data-i18n="light" onclick="toggleLight()">💡 Light</button>
       <button data-i18n="camReset" onclick="resetView()">📷 Reset</button>
     </div>
@@ -146,6 +147,7 @@ canvas { display: block; }
     <option value="zh">🇨🇳</option>
   </select>
   <button id="mobileTTS" onclick="window._toggleTTS(document.getElementById('btnTTS'))">🔊</button>
+  <button id="mobileAssist" onclick="toggleCodeAssist()">⚡</button>
 </div>
 
 <!-- Mobile lookup dialog -->

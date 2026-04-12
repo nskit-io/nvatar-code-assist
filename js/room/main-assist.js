@@ -1,5 +1,5 @@
 // NVatar Code Assist — Entry Point (SDK Mode)
-// Separate from main.js: auto-enters code assist mode on load
+// Normal avatar mode by default. Code Assist activated via toolbar toggle.
 import S from './state.js';
 import { getUiLang, applyI18nUI } from './i18n.js';
 import { init, toggleLight, resetView, addFurniture } from './scene.js';
@@ -46,19 +46,43 @@ const urlParams = new URLSearchParams(window.location.search);
 S.paramAvatarId = urlParams.get('avatar');
 const paramVRM = urlParams.get('vrm') || S.API_BASE + '/static/vrm/vroid-samples/Victoria_Rubin.vrm';
 
-// SDK options from URL: contextAppend, characterWrap, channel UUID
+// SDK options from URL
 const contextAppend = urlParams.get('ctx') === '1';
 const characterWrap = urlParams.get('wrap') !== '0'; // default ON
 const channelUUID = urlParams.get('channel') || '';
+const autoAssist = urlParams.get('assist') === '1';
 
 loadVRM(paramVRM, 0);
 
-// --- SDK Auto-Connect ---
-// After avatar loads, auto-configure SDK mode and show code panel
-async function sdkConnect() {
-  if (!S.paramAvatarId) return;
+// ─── Code Assist Toggle ───────────────────────────────────────
+let _assistActive = false;
+let _sdkConnected = false;
 
-  // Configure SDK options on server
+function _updateAssistUI(active) {
+  const btn = document.getElementById('btnAssist');
+  const mobileBtn = document.getElementById('mobileAssist');
+  const panel = document.getElementById('codePanel');
+  const h1 = document.querySelector('.top-bar h1');
+
+  if (btn) {
+    btn.style.background = active ? 'rgba(99,102,241,0.3)' : '';
+    btn.style.borderColor = active ? '#6366f1' : '#334155';
+    btn.style.color = active ? '#a5b4fc' : '#94a3b8';
+  }
+  if (mobileBtn) {
+    mobileBtn.style.background = active ? 'rgba(99,102,241,0.3)' : '';
+    mobileBtn.style.borderColor = active ? '#6366f1' : '#334155';
+  }
+  if (panel && window.innerWidth > 768) {
+    panel.style.display = active ? 'flex' : 'none';
+  }
+  if (h1) {
+    h1.innerHTML = active ? '<span>NVatar</span> Code Assist' : '<span>NVatar</span> Virtual Room';
+  }
+}
+
+async function _sdkConnect() {
+  if (_sdkConnected || !S.paramAvatarId) return;
   try {
     const res = await fetch(S.API_BASE + '/api/v1/sdk/connect', {
       method: 'POST',
@@ -71,17 +95,12 @@ async function sdkConnect() {
       }),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    _sdkConnected = true;
   } catch (e) {
-    addChatMsg('system', `SDK connect failed: ${e.message} — check server URL`);
+    addChatMsg('system', `SDK connect failed: ${e.message}`);
   }
 
-  // Show code panel on PC
-  if (window.innerWidth > 768) {
-    const panel = document.getElementById('codePanel');
-    if (panel) panel.style.display = 'flex';
-  }
-
-  // Load previous results from SQLite
+  // Load previous results
   if (channelUUID) {
     try {
       const res = await fetch(S.API_BASE + `/api/v1/sdk/results/${channelUUID}`);
@@ -94,81 +113,98 @@ async function sdkConnect() {
           }));
         }
       }
-    } catch (e) {
-      // History load is non-critical
-    }
+    } catch (e) { /* non-critical */ }
   }
-
-  // Update header to show assist mode
-  const h1 = document.querySelector('.top-bar h1');
-  if (h1) h1.innerHTML = '<span>NVatar</span> Code Assist';
-
-  // Auto-send "코드 비서모드 온" after WebSocket is ready
-  _waitForWsAndActivate();
 }
 
-function _waitForWsAndActivate() {
+function _sendAssistCommand(text) {
+  if (S.chatWs && S.chatWs.readyState === 1) {
+    S.chatWs.send(JSON.stringify({ type: 'message', text }));
+    return true;
+  }
+  return false;
+}
+
+function _waitForWsAndSend(text) {
+  if (_sendAssistCommand(text)) return;
   const check = setInterval(() => {
     if (S.chatWs && S.chatWs.readyState === 1) {
       clearInterval(check);
-      // Auto-activate code assist mode
-      S.chatWs.send(JSON.stringify({ type: 'message', text: '코드 비서모드 온' }));
+      _sendAssistCommand(text);
     }
   }, 500);
-  // Timeout after 30s
   setTimeout(() => clearInterval(check), 30000);
 }
 
-// Show channel confirm dialog, then connect
-function _showChannelConfirm() {
+function _showChannelSetup() {
   const lang = getUiLang();
   const txt = {
-    ko: { title: 'Claude Code 채널을 연결하셨나요?', desc: '터미널에서 아래 명령으로 채널을 먼저 시작해주세요.', yes: '연결했어요', no: '아직이에요', retry: '확인 후 클릭' },
-    en: { title: 'Have you connected the Claude Code channel?', desc: 'Start the channel first with this terminal command:', yes: 'Connected', no: 'Not yet', retry: 'Click when ready' },
-    ja: { title: 'Claude Code チャンネルを接続しましたか?', desc: 'ターミナルで以下のコマンドでチャンネルを起動してください。', yes: '接続済み', no: 'まだです', retry: '確認後クリック' },
-    zh: { title: '已连接 Claude Code 频道吗?', desc: '请先在终端运行以下命令启动频道:', yes: '已连接', no: '还没有', retry: '确认后点击' },
-  }[lang] || { title: 'Connect Claude Code channel?', desc: 'Start the channel first:', yes: 'Connected', no: 'Not yet', retry: 'Click when ready' };
+    ko: { title: 'Claude Code 채널이 필요합니다', desc: '채널 UUID를 로비에서 생성하고, 터미널에서 채널을 시작한 뒤 다시 입장해주세요.', ok: '확인' },
+    en: { title: 'Claude Code channel required', desc: 'Generate a Channel UUID in the lobby, start the channel in terminal, then re-enter.', ok: 'OK' },
+    ja: { title: 'Claude Code チャンネルが必要です', desc: 'ロビーでチャンネルUUIDを生成し、ターミナルでチャンネルを起動してから再入室してください。', ok: 'OK' },
+    zh: { title: '需要 Claude Code 频道', desc: '请在大厅生成频道UUID，在终端启动频道后重新进入。', ok: '确认' },
+  }[lang] || { title: 'Channel required', desc: 'Set up channel UUID in the lobby first.', ok: 'OK' };
 
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:200;';
   const dialog = document.createElement('div');
-  dialog.style.cssText = 'background:#1e293b;border:1px solid #334155;border-radius:16px;padding:24px;max-width:420px;width:90%;text-align:center;';
+  dialog.style.cssText = 'background:#1e293b;border:1px solid #334155;border-radius:16px;padding:24px;max-width:380px;width:90%;text-align:center;';
   dialog.innerHTML = `
     <div style="font-size:24px;margin-bottom:12px;">⚡</div>
     <h2 style="font-size:16px;color:#e2e8f0;margin-bottom:8px;">${txt.title}</h2>
-    <p style="font-size:12px;color:#94a3b8;margin-bottom:16px;line-height:1.6;">
-      ${txt.desc}<br>
-      <code style="display:block;margin-top:8px;padding:8px;background:#0f172a;border-radius:6px;color:#a5b4fc;font-size:11px;word-break:break-all;">
-        NVATAR_CHANNEL_UUID=${channelUUID || '(UUID)'} claude --dangerously-load-development-channels server:nvatar
-      </code>
-    </p>
-    <div style="display:flex;gap:8px;justify-content:center;">
-      <button id="cfmYes" style="padding:10px 24px;border:none;border-radius:8px;background:#6366f1;color:#fff;font-size:13px;cursor:pointer;">${txt.yes}</button>
-      <button id="cfmNo" style="padding:10px 24px;border:1px solid #334155;border-radius:8px;background:transparent;color:#94a3b8;font-size:13px;cursor:pointer;">${txt.no}</button>
-    </div>
+    <p style="font-size:12px;color:#94a3b8;margin-bottom:16px;line-height:1.6;">${txt.desc}</p>
+    <button style="padding:10px 24px;border:none;border-radius:8px;background:#6366f1;color:#fff;font-size:13px;cursor:pointer;">${txt.ok}</button>
   `;
   overlay.appendChild(dialog);
   document.body.appendChild(overlay);
-
-  dialog.querySelector('#cfmYes').onclick = () => {
-    overlay.remove();
-    sdkConnect();
-  };
-  dialog.querySelector('#cfmNo').onclick = () => {
-    dialog.querySelector('code').style.border = '1px solid #6366f1';
-    dialog.querySelector('#cfmNo').textContent = txt.retry;
-    dialog.querySelector('#cfmNo').onclick = () => {
-      overlay.remove();
-      sdkConnect();
-    };
-  };
+  dialog.querySelector('button').onclick = () => overlay.remove();
 }
 
-// Wait for loading to finish, then show confirm
-setTimeout(_showChannelConfirm, 3000);
+window.toggleCodeAssist = function() {
+  _assistActive = !_assistActive;
+  _updateAssistUI(_assistActive);
 
-// Show SDK mode indicator
-const modeTag = document.createElement('span');
-modeTag.style.cssText = 'position:absolute;top:10px;left:50%;transform:translateX(-50%);padding:4px 12px;border-radius:12px;background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;font-size:11px;z-index:20;pointer-events:none;';
-modeTag.textContent = `⚡ Code Assist${contextAppend ? ' (ctx)' : ''}${!characterWrap ? ' (raw)' : ''}`;
-document.body.appendChild(modeTag);
+  if (_assistActive) {
+    // Need channel UUID for code assist
+    if (!channelUUID) {
+      _assistActive = false;
+      _updateAssistUI(false);
+      _showChannelSetup();
+      return;
+    }
+    _sdkConnect();
+    _waitForWsAndSend('코드 비서모드 온');
+    addChatMsg('system', '⚡ Code Assist ON');
+
+    // Update URL for refresh persistence
+    const url = new URL(location.href);
+    url.searchParams.set('assist', '1');
+    history.replaceState(null, '', url.toString());
+  } else {
+    _sendAssistCommand('코드 비서모드 오프');
+    addChatMsg('system', '⚡ Code Assist OFF');
+
+    const url = new URL(location.href);
+    url.searchParams.delete('assist');
+    history.replaceState(null, '', url.toString());
+  }
+};
+
+// ─── Auto-enable if ?assist=1 (refresh persistence) ───────────
+if (autoAssist && channelUUID) {
+  // Wait for WebSocket to be ready, then activate
+  const _autoCheck = setInterval(() => {
+    if (S.chatWs && S.chatWs.readyState === 1) {
+      clearInterval(_autoCheck);
+      // Small delay to let initial greeting flow settle
+      setTimeout(() => {
+        _assistActive = true;
+        _updateAssistUI(true);
+        _sdkConnect();
+        _sendAssistCommand('코드 비서모드 온');
+        addChatMsg('system', '⚡ Code Assist ON (auto)');
+      }, 2000);
+    }
+  }, 500);
+  setTimeout(() => clearInterval(_autoCheck), 30000);
+}
