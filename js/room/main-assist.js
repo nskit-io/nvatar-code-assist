@@ -203,31 +203,21 @@ window.toggleCodeAssist = function() {
   }
 };
 
-// ─── Entry: ensure clean state ────────────────────────────────
-// On every room entry, reset assist to OFF on the server side.
-// This prevents stale channel routing from previous sessions.
-function _ensureAssistOff() {
-  // API-only reset — no chat message, no Gemma response, no TTS
-  _sdkDisconnect();
-}
-
-// Wait for WS ready, then either auto-enable or reset to OFF
+// ─── Entry: restore state ─────────────────────────────────────
 const _entryCheck = setInterval(() => {
   if (S.chatWs && S.chatWs.readyState === 1) {
     clearInterval(_entryCheck);
 
     if (autoAssist && channelUUID) {
-      // ?assist=1 — auto-enable after greeting settles
-      setTimeout(() => {
-        _assistActive = true;
-        _updateAssistUI(true);
-        _sdkConnect();
-        _sendAssistCommand('코드 비서모드 온');
-        addChatMsg('system', '⚡ Code Assist ON (auto)');
-      }, 2000);
+      // ?assist=1 — restore assist mode (refresh persistence)
+      _assistActive = true;
+      _updateAssistUI(true);
+      _sdkConnect();
+      _sendAssistCommand('코드 비서모드 온');
+      addChatMsg('system', '⚡ Code Assist ON (auto)');
     } else {
-      // Default: explicitly reset to OFF
-      setTimeout(() => _ensureAssistOff(), 1500);
+      // No assist — reset server state silently (no Gemma response)
+      _sdkDisconnect();
     }
   }
 }, 500);
