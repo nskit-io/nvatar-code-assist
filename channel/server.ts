@@ -32,7 +32,7 @@ try {
   }
 } catch {}
 
-const CHANNEL_SECRET = process.env.NVATAR_CHANNEL_SECRET || 'nvatar_dev_secret'
+const CHANNEL_SECRET = process.env.NVATAR_CHANNEL_SECRET || 'nvatar_ch_2026_secret'
 const CHANNEL_PORT = parseInt(process.env.NVATAR_CHANNEL_PORT || '8789', 10)
 const NVATAR_SERVER = process.env.NVATAR_SERVER_URL || 'http://localhost:54444'
 // UUID: passed via env (from user's index page) or auto-generated
