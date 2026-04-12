@@ -100,7 +100,7 @@ async function processQueue() {
     audio.onended = () => { ttsCurrentAudio = null; processQueue(); };
     audio.onerror = () => { ttsCurrentAudio = null; processQueue(); };
     ttsCurrentAudio = audio;
-    audio.play();
+    audio.play().catch(() => { ttsCurrentAudio = null; processQueue(); });
   } catch (e) {
     console.warn('[TTS] Error:', e.message);
     processQueue();

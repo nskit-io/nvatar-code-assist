@@ -207,8 +207,8 @@ window.toggleCodeAssist = function() {
 // On every room entry, reset assist to OFF on the server side.
 // This prevents stale channel routing from previous sessions.
 function _ensureAssistOff() {
+  // API-only reset — no chat message, no Gemma response, no TTS
   _sdkDisconnect();
-  _sendAssistCommand('코드 비서모드 오프');
 }
 
 // Wait for WS ready, then either auto-enable or reset to OFF
