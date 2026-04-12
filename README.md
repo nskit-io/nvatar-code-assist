@@ -62,7 +62,8 @@ Claude Code launches the channel server automatically. The channel registers wit
 
 - [Claude Code](https://claude.ai/claude-code) v2.1.80+
 - [Bun](https://bun.sh/) runtime
-- NVatar Server access (`https://nvatar.nskit.io` or self-hosted)
+
+> **Note:** The NVatar server is hosted at `https://nvatar.nskit.io`. This is the only publicly available server — local self-hosting is not supported for public users. If you're interested in deploying NVatar on your own infrastructure (enterprise / standalone), please [contact us](mailto:nskit@neoulsoft.com).
 
 ### Step 1: Clone & Install
 
@@ -245,14 +246,16 @@ The channel server re-registers with NVatar every 30 seconds. This means:
 - NVatar server restarts → channel auto-reconnects within 30s
 - No manual re-registration needed
 
-### Self-Hosting CORS
+### Enterprise Self-Hosting
 
-If hosting the lobby on GitHub Pages with your own NVatar server:
+Self-hosting NVatar requires a dedicated server with GPU (for Gemma LLM) and API keys (for ElevenLabs TTS). For enterprise deployment inquiries, please [contact us](mailto:nskit@neoulsoft.com).
+
+If self-hosting, configure CORS for your lobby domain:
 
 ```python
 # FastAPI
 app.add_middleware(CORSMiddleware,
-    allow_origins=["https://your-username.github.io"],
+    allow_origins=["https://your-domain.com"],
     allow_methods=["*"], allow_headers=["*"])
 ```
 
@@ -283,6 +286,17 @@ nvatar-code-assist/
     ├── README_JA.md
     └── README_ZH.md
 ```
+
+## Service Limits
+
+| Service | Endpoint | Notes |
+|---------|----------|-------|
+| **NVatar Server** | `nvatar.nskit.io` | Public hosted server. Self-hosting not available for public use. |
+| **TTS (Voice)** | ElevenLabs via `nvatar.nskit.io` | Rate limits may apply due to API quota. If TTS becomes unavailable, the avatar continues with text bubbles only — all features work normally without voice. |
+| **STT (Speech-to-text)** | `whisper.nskit.io` (local Whisper) | Locally hosted, generally stable. Use text input as fallback. |
+
+- TTS uses a shared ElevenLabs API quota. During heavy usage, voice output may temporarily stop. This does not affect chat or code relay — the avatar simply speaks through text bubbles instead.
+- For enterprise deployment with dedicated resources, please [contact us](mailto:nskit@neoulsoft.com).
 
 ## Troubleshooting
 
