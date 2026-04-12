@@ -218,6 +218,20 @@ async function unregisterFromServer() {
   } catch {}
 }
 
+// --- Heartbeat: re-register periodically (survives NVatar server restarts) ---
+const HEARTBEAT_MS = 30_000 // 30 seconds
+setInterval(async () => {
+  if (stopping) return
+  try {
+    const res = await fetch(`${NVATAR_SERVER}/api/v1/channel/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Channel-Token': CHANNEL_SECRET },
+      body: JSON.stringify({ port: CHANNEL_PORT, token: CHANNEL_SECRET, uuid: CHANNEL_UUID }),
+    })
+    if (!res.ok) process.stderr.write(`nvatar channel: heartbeat failed: ${res.status}\n`)
+  } catch {}
+}, HEARTBEAT_MS)
+
 // --- Graceful shutdown ---
 let stopping = false
 async function shutdown() {
