@@ -158,6 +158,19 @@ Messages are relayed directly to Claude Code — no Gemma involvement. The avata
 | Final result | ← Avatar speaks it + Code Panel |
 | Ask avatar's opinion | → Gemma responds (with result context) |
 
+### Privacy & Data
+
+> **Important:** Code Assist mode does NOT save any conversation to the avatar's memory.
+
+| | Normal Mode | Code Assist Mode |
+|---|---|---|
+| **Conversation log** | Saved to avatar memory | Not saved |
+| **Emotion tracking** | Active (joy, sadness, etc.) | Disabled |
+| **Personality evolution** | Active (traits develop over time) | Disabled |
+| **Code results** | N/A | Saved to Code Panel + SQLite (separate from avatar memory) |
+
+Your daily conversations with the avatar build its personality and emotional bond over time. Code assist conversations are completely isolated — they won't affect your avatar's character or memory. When you toggle back to Normal Mode, the avatar continues from where you left off in your personal conversation.
+
 **Opinion detection** works in 4 languages:
 - 🇰🇷 "어떻게 생각해?", "네 의견은?"
 - 🇺🇸 "What do you think?", "Your opinion?"
