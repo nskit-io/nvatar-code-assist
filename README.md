@@ -63,7 +63,7 @@ Claude Code launches the channel server automatically. The channel registers wit
 - [Claude Code](https://claude.ai/claude-code) v2.1.80+
 - [Bun](https://bun.sh/) runtime
 
-> **Note:** The NVatar server is hosted at `https://nvatar.nskit.io`. This is the only publicly available server — local self-hosting is not supported for public users. If you're interested in deploying NVatar on your own infrastructure (enterprise / standalone), please [contact us](mailto:nskit@neoulsoft.com).
+> **Note:** The NVatar server is hosted at `https://nvatar.nskit.io`. This is the only publicly available server — local self-hosting is not supported for public users. If you're interested in deploying NVatar on your own infrastructure (enterprise / standalone), please [contact us](mailto:nskit@nskit.io).
 
 ### Step 1: Clone & Install
 
@@ -248,7 +248,7 @@ The channel server re-registers with NVatar every 30 seconds. This means:
 
 ### Enterprise Self-Hosting
 
-Self-hosting NVatar requires a dedicated server with GPU (for Gemma LLM) and API keys (for ElevenLabs TTS). For enterprise deployment inquiries, please [contact us](mailto:nskit@neoulsoft.com).
+Self-hosting NVatar requires a dedicated server with GPU (for Gemma LLM) and API keys (for ElevenLabs TTS). For enterprise deployment inquiries, please [contact us](mailto:nskit@nskit.io).
 
 If self-hosting, configure CORS for your lobby domain:
 
@@ -296,7 +296,7 @@ nvatar-code-assist/
 | **STT (Speech-to-text)** | `whisper.nskit.io` (local Whisper) | Locally hosted, generally stable. Use text input as fallback. |
 
 - TTS uses a shared ElevenLabs API quota. During heavy usage, voice output may temporarily stop. This does not affect chat or code relay — the avatar simply speaks through text bubbles instead.
-- For enterprise deployment with dedicated resources, please [contact us](mailto:nskit@neoulsoft.com).
+- For enterprise deployment with dedicated resources, please [contact us](mailto:nskit@nskit.io).
 
 ## Troubleshooting
 

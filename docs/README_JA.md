@@ -63,7 +63,7 @@ Claude Codeがチャンネルサーバーを自動的に起動します。チャ
 - [Claude Code](https://claude.ai/claude-code) v2.1.80以上
 - [Bun](https://bun.sh/) ランタイム
 
-> **ご案内:** NVatarサーバーは`https://nvatar.nskit.io`でホスティングされています。ローカルセルフホスティングはサポートされていません。自社インフラへの導入をご検討の場合は[お問い合わせください](mailto:nskit@neoulsoft.com)。
+> **ご案内:** NVatarサーバーは`https://nvatar.nskit.io`でホスティングされています。ローカルセルフホスティングはサポートされていません。自社インフラへの導入をご検討の場合は[お問い合わせください](mailto:nskit@nskit.io)。
 - NVatar Serverへのアクセス (`https://nvatar.nskit.io` またはセルフホスト)
 
 ### Step 1: クローンとインストール
@@ -295,7 +295,7 @@ nvatar-code-assist/
 | **STT（音声認識）** | `whisper.nskit.io`（ローカルWhisper） | 自社ホスティングで安定稼働。障害時はテキスト入力をご利用ください。 |
 
 - TTSは共有ElevenLabs APIクォータを使用しています。利用が集中するとTTS一時停止の可能性がありますが、チャットとコードリレーはテキスト吹き出しで正常に動作します。
-- 専用リソースが必要な企業導入は[お問い合わせください](mailto:nskit@neoulsoft.com)。
+- 専用リソースが必要な企業導入は[お問い合わせください](mailto:nskit@nskit.io)。
 
 ## トラブルシューティング
 
