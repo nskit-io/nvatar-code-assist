@@ -235,10 +235,10 @@ NVatarSDK.clearLookupResults();  // clear all
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `NVATAR_CHANNEL_UUID` | auto-generated | Channel identifier (match with lobby) |
-| `NVATAR_SERVER_URL` | `http://localhost:54444` | NVatar server endpoint |
+| `NVATAR_CHANNEL_UUID` | auto-generated | Channel identifier (match with lobby UUID) |
 | `NVATAR_CHANNEL_PORT` | `8789` | Channel HTTP server port |
-| `NVATAR_CHANNEL_SECRET` | `nvatar_ch_2026_secret` | Authentication token |
+
+> `NVATAR_CHANNEL_UUID` is the only variable you normally need to set. It must match the UUID generated in the lobby page.
 
 ### Heartbeat
 

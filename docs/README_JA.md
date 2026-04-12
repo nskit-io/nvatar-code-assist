@@ -236,10 +236,10 @@ NVatarSDK.clearLookupResults();  // clear all
 
 | 変数 | デフォルト | 説明 |
 |------|-----------|------|
-| `NVATAR_CHANNEL_UUID` | 自動生成 | チャネル識別子（ロビーと同一に設定） |
-| `NVATAR_SERVER_URL` | `http://localhost:54444` | NVatarサーバーエンドポイント |
+| `NVATAR_CHANNEL_UUID` | 自動生成 | チャネル識別子（ロビーで生成したUUIDと同一に設定） |
 | `NVATAR_CHANNEL_PORT` | `8789` | チャネルHTTPサーバーポート |
-| `NVATAR_CHANNEL_SECRET` | `nvatar_ch_2026_secret` | 認証トークン |
+
+> 通常設定が必要なのは`NVATAR_CHANNEL_UUID`のみです。ロビーで生成したUUIDと一致させてください。
 
 ### ハートビート
 

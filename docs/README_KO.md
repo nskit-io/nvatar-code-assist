@@ -235,10 +235,10 @@ NVatarSDK.clearLookupResults();  // clear all
 
 | 변수 | 기본값 | 설명 |
 |------|--------|------|
-| `NVATAR_CHANNEL_UUID` | 자동 생성 | 채널 식별자 (로비와 동일하게 설정) |
-| `NVATAR_SERVER_URL` | `http://localhost:54444` | NVatar 서버 엔드포인트 |
+| `NVATAR_CHANNEL_UUID` | 자동 생성 | 채널 식별자 (로비에서 생성한 UUID와 동일하게 설정) |
 | `NVATAR_CHANNEL_PORT` | `8789` | 채널 HTTP 서버 포트 |
-| `NVATAR_CHANNEL_SECRET` | `nvatar_ch_2026_secret` | 인증 토큰 |
+
+> `NVATAR_CHANNEL_UUID`만 설정하면 됩니다. 로비에서 생성한 UUID와 일치해야 합니다.
 
 ### 하트비트
 

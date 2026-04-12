@@ -236,10 +236,10 @@ NVatarSDK.clearLookupResults();  // clear all
 
 | 变量 | 默认值 | 说明 |
 |------|--------|------|
-| `NVATAR_CHANNEL_UUID` | 自动生成 | 通道标识符（需与大厅一致） |
-| `NVATAR_SERVER_URL` | `http://localhost:54444` | NVatar服务器端点 |
+| `NVATAR_CHANNEL_UUID` | 自动生成 | 通道标识符（需与大厅生成的UUID一致） |
 | `NVATAR_CHANNEL_PORT` | `8789` | 通道HTTP服务器端口 |
-| `NVATAR_CHANNEL_SECRET` | `nvatar_ch_2026_secret` | 认证令牌 |
+
+> 通常只需设置`NVATAR_CHANNEL_UUID`。必须与大厅页面生成的UUID匹配。
 
 ### 心跳机制
 
