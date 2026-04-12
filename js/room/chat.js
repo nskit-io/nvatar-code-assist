@@ -11,9 +11,17 @@ import { addLookupResult, NVatarSDK } from './lookup.js';
 export function connectChat(avatarId) {
   if (S.chatWs) S.chatWs.close();
   S.currentAvatarId = avatarId;
-  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const wsHost = S.API_BASE ? 'nvatar.nskit.io' : location.host;
-  S.chatWs = new WebSocket(`${proto}//${wsHost}/ws/chat/${avatarId}`);
+  let wsUrl;
+  if (S.API_BASE) {
+    // Extract host from API_BASE (e.g. 'https://nvatar.nskit.io' → 'wss://nvatar.nskit.io')
+    const url = new URL(S.API_BASE);
+    const proto = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    wsUrl = `${proto}//${url.host}/ws/chat/${avatarId}`;
+  } else {
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    wsUrl = `${proto}//${location.host}/ws/chat/${avatarId}`;
+  }
+  S.chatWs = new WebSocket(wsUrl);
 
   S.chatWs.onopen = () => {
     addChatMsg('system', t('connected'));

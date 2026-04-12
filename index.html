@@ -100,12 +100,21 @@ textarea { height: 70px; resize: vertical; }
     <p>AI 아바타와 함께하는 코드 비서</p>
   </div>
 
-  <!-- Channel UUID -->
+  <!-- Server URL + Channel UUID -->
   <div style="margin-bottom:16px;padding:14px 16px;background:#1e293b;border:1px solid #334155;border-radius:12px;">
-    <div style="font-size:12px;color:#94a3b8;margin-bottom:8px;">⚡ Channel UUID</div>
-    <div style="display:flex;gap:8px;align-items:center;">
-      <input id="channelUUID" value="" placeholder="채널 시작 후 UUID 입력" style="flex:1;padding:10px 14px;border:1px solid #334155;border-radius:8px;background:#0f172a;color:#a5b4fc;font-size:14px;font-family:monospace;outline:none;">
-      <button onclick="document.getElementById('channelUUID').value=crypto.randomUUID().slice(0,8);_updateCmd()" style="padding:10px 14px;border:1px solid #6366f1;border-radius:8px;background:rgba(99,102,241,0.15);color:#a5b4fc;font-size:12px;cursor:pointer;">생성</button>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;">
+        <div style="font-size:12px;color:#94a3b8;margin-bottom:6px;">NVatar Server</div>
+        <input id="serverURL" value="" placeholder="https://nvatar.nskit.io" style="width:100%;padding:10px 14px;border:1px solid #334155;border-radius:8px;background:#0f172a;color:#a5b4fc;font-size:13px;font-family:monospace;outline:none;">
+        <div id="serverStatus" style="font-size:10px;color:#64748b;margin-top:4px;"></div>
+      </div>
+      <div style="flex:1;min-width:200px;">
+        <div style="font-size:12px;color:#94a3b8;margin-bottom:6px;">Channel UUID</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input id="channelUUID" value="" placeholder="채널 시작 후 UUID 입력" style="flex:1;padding:10px 14px;border:1px solid #334155;border-radius:8px;background:#0f172a;color:#a5b4fc;font-size:14px;font-family:monospace;outline:none;">
+          <button onclick="document.getElementById('channelUUID').value=crypto.randomUUID().slice(0,8);_updateCmd()" style="padding:10px 14px;border:1px solid #6366f1;border-radius:8px;background:rgba(99,102,241,0.15);color:#a5b4fc;font-size:12px;cursor:pointer;">Gen</button>
+        </div>
+      </div>
     </div>
     <pre id="channelCmd" style="margin-top:8px;padding:8px 10px;background:#0a0f1a;border-radius:6px;font-size:11px;color:#64748b;overflow-x:auto;white-space:nowrap;">UUID를 생성하면 채널 시작 명령이 표시됩니다</pre>
     <script>
@@ -116,6 +125,12 @@ textarea { height: 70px; resize: vertical; }
       }
     }
     document.getElementById('channelUUID').addEventListener('input', _updateCmd);
+    // Persist server URL
+    const _savedServer = localStorage.getItem('nvatar_server_url');
+    if (_savedServer) document.getElementById('serverURL').value = _savedServer;
+    document.getElementById('serverURL').addEventListener('change', function() {
+      localStorage.setItem('nvatar_server_url', this.value.trim());
+    });
     </script>
   </div>
 
@@ -216,7 +231,7 @@ textarea { height: 70px; resize: vertical; }
   </div>
 
   <div class="footer">
-    Powered by Gemma 4 + Whisper STT · <a href="/static/avatar-demo.html">Avatar Lab</a>
+    Powered by Gemma 4 + Whisper STT · <a href="https://github.com/nskit-io/nvatar-code-assist">GitHub</a>
   </div>
 </div>
 
@@ -226,7 +241,11 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
-const API = location.origin;
+const DEFAULT_SERVER = 'https://nvatar.nskit.io';
+function getServer() {
+  return (document.getElementById('serverURL')?.value?.trim().replace(/\/$/, '')) || DEFAULT_SERVER;
+}
+let _useStaticModels = false;  // true when using local models.json fallback
 
 // VRM models loaded from API
 let allModels = [];
@@ -253,17 +272,31 @@ function switchTab(tab) {
 
 // --- VRM models ---
 async function loadVRMModels() {
+  const server = getServer();
+  const statusEl = document.getElementById('serverStatus');
   try {
-    const r = await fetch(`${API}/api/v1/vrm/models`);
+    // Try API server first
+    const r = await fetch(`${server}/api/v1/vrm/models`, { signal: AbortSignal.timeout(5000) });
     const d = await r.json();
     allModels = d.models || [];
-    if (allModels.length > 0) {
-      selectedVRM = allModels[0];
-    }
-    renderVRMGrid();
+    _useStaticModels = false;
+    if (statusEl) statusEl.textContent = `Connected to ${server}`;
+    if (statusEl) statusEl.style.color = '#22c55e';
   } catch(e) {
-    document.getElementById('vrmGrid').innerHTML = '<div style="grid-column:1/-1;color:#ef4444;font-size:12px;padding:12px;">Failed to load models</div>';
+    // Fallback to static models.json (GitHub Pages)
+    try {
+      const r = await fetch('./vrm/models.json');
+      allModels = await r.json();
+      _useStaticModels = true;
+      if (statusEl) statusEl.textContent = 'Offline mode — using bundled model list';
+      if (statusEl) statusEl.style.color = '#f59e0b';
+    } catch(e2) {
+      document.getElementById('vrmGrid').innerHTML = '<div style="grid-column:1/-1;color:#ef4444;font-size:12px;padding:12px;">Failed to load models</div>';
+      return;
+    }
   }
+  if (allModels.length > 0) selectedVRM = allModels[0];
+  renderVRMGrid();
 }
 
 function getGenderEmoji(tags) {
@@ -292,7 +325,9 @@ function renderVRMGrid() {
     const isSelected = selectedVRM && selectedVRM.id === m.id;
     const emoji = getGenderEmoji(m.tags);
     const badge = m.source === 'booth' ? 'BOOTH' : 'VRoid';
-    const thumb = m.thumbnail ? `<img class="vrm-thumb" src="${API}${m.thumbnail}" alt="${m.name}">` : `<span class="emoji">${emoji}</span>`;
+    // Static models have relative thumbnail paths, API models have /static/... paths
+    const thumbSrc = m.thumbnail ? (_useStaticModels ? m.thumbnail : `${getServer()}${m.thumbnail}`) : null;
+    const thumb = thumbSrc ? `<img class="vrm-thumb" src="${thumbSrc}" alt="${m.name}">` : `<span class="emoji">${emoji}</span>`;
     return `<div class="vrm-option${isSelected ? ' selected' : ''}" onclick="selectVRMModel('${m.id}')">
       <span class="vrm-badge">${badge}</span>
       ${thumb}
@@ -308,14 +343,15 @@ function selectVRMModel(id) {
   if (!model) return;
   selectedVRM = model;
   renderVRMGrid();
-  loadPreviewVRM(API + model.url);
+  loadPreviewVRM(getServer() + model.url);
 }
 
 // --- Load existing ---
 async function loadAvatars() {
   const uid = getUserId();
+  const server = getServer();
   try {
-    const r = await fetch(`${API}/api/v1/avatars?user_id=${uid}`);
+    const r = await fetch(`${server}/api/v1/avatars?user_id=${uid}`, { signal: AbortSignal.timeout(5000) });
     const d = await r.json();
     const list = d.response || d;
     const container = document.getElementById('avatarList');
@@ -331,10 +367,11 @@ async function loadAvatars() {
       const vrmUrl = saved.vrm_url || '';
       const vrmName = saved.vrm_name || 'Default';
       const thumbUrl = saved.vrm_thumbnail || '';
+      const thumbSrc = thumbUrl ? (thumbUrl.startsWith('http') ? thumbUrl : `${server}${thumbUrl}`) : '';
       const el = document.createElement('div');
       el.className = 'avatar-item';
       el.innerHTML = `
-        ${thumbUrl ? `<img class="avatar-thumb" src="${API}${thumbUrl}" alt="${a.name}">` : ''}
+        ${thumbSrc ? `<img class="avatar-thumb" src="${thumbSrc}" alt="${a.name}">` : ''}
         <div class="info">
           <div class="name">${a.name}</div>
           <div class="desc">${(a.persona || '').substring(0, 50)}${(a.persona || '').length > 50 ? '...' : ''} · ${vrmName}</div>
@@ -345,7 +382,7 @@ async function loadAvatars() {
       container.appendChild(el);
     });
   } catch(e) {
-    document.getElementById('avatarList').innerHTML = '<div class="empty">서버 연결 실패</div>';
+    document.getElementById('avatarList').innerHTML = '<div class="empty">서버 연결 대기 중 — 서버 URL을 확인하세요</div>';
   }
 }
 
@@ -357,9 +394,10 @@ async function createAndEnter() {
   if (!name || !persona || !tone) { alert('이름, 성격, 말투를 입력하세요'); return; }
 
   const uid = getUserId();
+  const server = getServer();
   if (!selectedVRM) { alert('외형을 선택하세요'); return; }
 
-  const r = await fetch(`${API}/api/v1/avatars`, {
+  const r = await fetch(`${server}/api/v1/avatars`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({
@@ -374,7 +412,7 @@ async function createAndEnter() {
   const d = await r.json();
   if (d.response) {
     const avatarId = d.response.id;
-    const vrmUrl = API + selectedVRM.url;
+    const vrmUrl = server + selectedVRM.url;
     localStorage.setItem('nvatar_' + avatarId, JSON.stringify({
       vrm_id: selectedVRM.id,
       vrm_url: vrmUrl,
@@ -387,13 +425,14 @@ async function createAndEnter() {
 
 // --- Enter Room ---
 function enterRoom(avatarId, vrmUrl) {
-  const url = vrmUrl || (selectedVRM ? API + selectedVRM.url : '');
+  const server = getServer();
+  const url = vrmUrl || (selectedVRM ? server + selectedVRM.url : '');
   if (!url) {
     alert('VRM model not selected');
     return;
   }
   const channelUUID = document.getElementById('channelUUID')?.value || '';
-  window.location.href = `/static/code-assist.html?avatar=${avatarId}&vrm=${encodeURIComponent(url)}&channel=${channelUUID}`;
+  window.location.href = `code-assist.html?avatar=${avatarId}&vrm=${encodeURIComponent(url)}&channel=${channelUUID}&server=${encodeURIComponent(server)}`;
 }
 
 // --- 3D Preview ---
@@ -553,8 +592,7 @@ function initPreview() {
 }
 
 function applyIdlePose(vrm, model) {
-  // Use official Mixamo retarget with Idle_Default.fbx (same as room-demo)
-  loadMixamoForPreview('/static/fbx/mixamo/Idle_Default.fbx', vrm, model);
+  loadMixamoForPreview(`${getServer()}/static/fbx/mixamo/Idle_Default.fbx`, vrm, model);
 }
 
 async function loadPreviewVRM(url) {
@@ -588,7 +626,7 @@ window.switchTab = function(tab) {
   document.getElementById('tabCreate').style.display = tab === 'create' ? 'block' : 'none';
   if (tab === 'create') {
     requestAnimationFrame(() => setTimeout(() => {
-      if (!pRenderer && selectedVRM) loadPreviewVRM(API + selectedVRM.url);
+      if (!pRenderer && selectedVRM) loadPreviewVRM(getServer() + selectedVRM.url);
     }, 200));
   }
 };
@@ -598,7 +636,7 @@ window.selectVRMModel = function(id) {
   if (!model) return;
   selectedVRM = model;
   renderVRMGrid();
-  loadPreviewVRM(API + model.url);
+  loadPreviewVRM(getServer() + model.url);
 };
 
 window.filterVRM = function(filter) {

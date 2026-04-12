@@ -1,0 +1,382 @@
+[
+  {
+    "id": "booth/Neku_Shiro",
+    "name": "Neku",
+    "name_ja": "ネク",
+    "source": "booth",
+    "creator": "Doll House",
+    "tags": [
+      "VRM",
+      "Male",
+      "Free"
+    ],
+    "verified": true,
+    "url": "/static/vrm/booth/Neku_Shiro/Neku_Shiro.vrm",
+    "thumbnail": "vrm/thumbnails/Neku_Shiro.jpg"
+  },
+  {
+    "id": "booth/SaekiToshimasa-v1",
+    "name": "Toshi",
+    "name_ja": "俊正",
+    "source": "booth",
+    "creator": "みずち (mizuchi)",
+    "tags": [
+      "VRoid",
+      "VRM",
+      "Male",
+      "TRPG"
+    ],
+    "verified": true,
+    "url": "/static/vrm/booth/SaekiToshimasa-v1/佐伯俊正.vrm",
+    "thumbnail": "vrm/thumbnails/佐伯俊正.jpg"
+  },
+  {
+    "id": "booth/j_Kokuyou",
+    "name": "Kokuyou",
+    "name_ja": "黒曜",
+    "source": "booth",
+    "creator": "ROLOCK (6666669)",
+    "tags": [
+      "VRM",
+      "Male",
+      "Free"
+    ],
+    "verified": true,
+    "url": "/static/vrm/booth/j_Kokuyou/Kokuyou_1.0.vrm",
+    "thumbnail": "vrm/thumbnails/Kokuyou_1.0.jpg"
+  },
+  {
+    "id": "booth/keito",
+    "name": "Keito",
+    "name_ja": "けいと",
+    "source": "booth",
+    "creator": "ビジネスアバター工房",
+    "tags": [
+      "VRoid",
+      "VRM",
+      "Business Avatar"
+    ],
+    "verified": true,
+    "url": "/static/vrm/booth/keito/keito_d.vrm",
+    "thumbnail": "vrm/thumbnails/keito_d.jpg"
+  },
+  {
+    "id": "booth/nasha",
+    "name": "Nasha",
+    "name_ja": "ナーシャ",
+    "source": "booth",
+    "creator": "Doll House",
+    "tags": [
+      "VRoid",
+      "3D Model",
+      "Free"
+    ],
+    "verified": true,
+    "url": "/static/vrm/booth/nasha/nasha.vrm",
+    "thumbnail": "vrm/thumbnails/nasha.jpg"
+  },
+  {
+    "id": "booth/ライ",
+    "name": "Rai",
+    "name_ja": "ライ",
+    "source": "booth",
+    "creator": "shop-perch",
+    "tags": [
+      "VRoid",
+      "VRM",
+      "Male",
+      "Free"
+    ],
+    "verified": true,
+    "url": "/static/vrm/booth/ライ/ライ.vrm",
+    "thumbnail": "vrm/thumbnails/ライ.jpg"
+  },
+  {
+    "id": "booth/悪魔風フルコーデセット",
+    "name": "Demon",
+    "name_ja": "悪魔",
+    "source": "booth",
+    "creator": "こるきゅ！ (弓屋 晶都)",
+    "tags": [
+      "VRoid",
+      "VRM",
+      "Gothic",
+      "Demon",
+      "Free"
+    ],
+    "verified": true,
+    "url": "/static/vrm/booth/悪魔風フルコーデセット/1000人記念モデル-つのA羽2.vrm",
+    "thumbnail": "vrm/thumbnails/1000人記念モデル-つのA羽2.jpg"
+  },
+  {
+    "id": "booth/楠木有紗",
+    "name": "Arisa",
+    "name_ja": "有紗",
+    "source": "booth",
+    "creator": "みずち (mizuchi)",
+    "tags": [
+      "VRoid",
+      "VRM",
+      "TRPG"
+    ],
+    "verified": true,
+    "url": "/static/vrm/booth/楠木有紗/楠木有紗.vrm",
+    "thumbnail": "vrm/thumbnails/楠木有紗.jpg"
+  },
+  {
+    "id": "booth/水瀬ほむら",
+    "name": "Homura",
+    "name_ja": "ほむら",
+    "source": "booth",
+    "creator": "沙七の水面",
+    "tags": [
+      "VRM",
+      "Female",
+      "Free"
+    ],
+    "verified": true,
+    "url": "/static/vrm/booth/水瀬ほむら/水瀬ほむら_ps.vrm",
+    "thumbnail": "vrm/thumbnails/水瀬ほむら_ps.jpg"
+  },
+  {
+    "id": "booth/火威フラム",
+    "name": "Flamme",
+    "name_ja": "フラム",
+    "source": "booth",
+    "creator": "みずち (mizuchi)",
+    "tags": [
+      "VRoid",
+      "VRM",
+      "TRPG"
+    ],
+    "verified": true,
+    "url": "/static/vrm/booth/火威フラム/火威フラム.vrm",
+    "thumbnail": "vrm/thumbnails/火威フラム.jpg"
+  },
+  {
+    "id": "booth/縦ロール",
+    "name": "Lina",
+    "name_ja": "リナ",
+    "source": "booth",
+    "creator": "shop-perch",
+    "tags": [
+      "VRoid",
+      "VRM",
+      "Free"
+    ],
+    "verified": true,
+    "url": "/static/vrm/booth/縦ロール/縦ロール.vrm",
+    "thumbnail": "vrm/thumbnails/縦ロール.jpg"
+  },
+  {
+    "id": "booth/葛野歩守",
+    "name": "Ayumi",
+    "name_ja": "歩守",
+    "source": "booth",
+    "creator": "みずち (mizuchi)",
+    "tags": [
+      "VRoid",
+      "VRM",
+      "TRPG"
+    ],
+    "verified": true,
+    "url": "/static/vrm/booth/葛野歩守/葛野歩守.vrm",
+    "thumbnail": "vrm/thumbnails/葛野歩守.jpg"
+  },
+  {
+    "id": "vroid/AvatarSample_A",
+    "name": "Sample A",
+    "name_ja": "",
+    "source": "vroid-samples",
+    "creator": "VRoid Project",
+    "tags": [
+      "Female",
+      "VRoid"
+    ],
+    "verified": true,
+    "url": "/static/vrm/vroid-samples/AvatarSample_A.vrm",
+    "thumbnail": "vrm/thumbnails/AvatarSample_A.jpg"
+  },
+  {
+    "id": "vroid/AvatarSample_B",
+    "name": "Sample B",
+    "name_ja": "",
+    "source": "vroid-samples",
+    "creator": "VRoid Project",
+    "tags": [
+      "Female",
+      "VRoid"
+    ],
+    "verified": true,
+    "url": "/static/vrm/vroid-samples/AvatarSample_B.vrm",
+    "thumbnail": "vrm/thumbnails/AvatarSample_B.jpg"
+  },
+  {
+    "id": "vroid/AvatarSample_C",
+    "name": "Sample C",
+    "name_ja": "",
+    "source": "vroid-samples",
+    "creator": "VRoid Project",
+    "tags": [
+      "Female",
+      "VRoid"
+    ],
+    "verified": true,
+    "url": "/static/vrm/vroid-samples/AvatarSample_C.vrm",
+    "thumbnail": "vrm/thumbnails/AvatarSample_C.jpg"
+  },
+  {
+    "id": "vroid/Avatar_Orion",
+    "name": "Orion",
+    "name_ja": "",
+    "source": "vroid-samples",
+    "creator": "VRoid Project",
+    "tags": [
+      "Male",
+      "VRoid"
+    ],
+    "verified": true,
+    "url": "/static/vrm/vroid-samples/Avatar_Orion.vrm",
+    "thumbnail": "vrm/thumbnails/Avatar_Orion.jpg"
+  },
+  {
+    "id": "vroid/Darkness_Shibu",
+    "name": "Darkness Shibu",
+    "name_ja": "",
+    "source": "vroid-samples",
+    "creator": "VRoid Project",
+    "tags": [
+      "Male",
+      "VRoid"
+    ],
+    "verified": true,
+    "url": "/static/vrm/vroid-samples/Darkness_Shibu.vrm",
+    "thumbnail": "vrm/thumbnails/Darkness_Shibu.jpg"
+  },
+  {
+    "id": "vroid/Sakurada_Fumiriya",
+    "name": "Fumiriya",
+    "name_ja": "",
+    "source": "vroid-samples",
+    "creator": "VRoid Project",
+    "tags": [
+      "Male",
+      "VRoid"
+    ],
+    "verified": true,
+    "url": "/static/vrm/vroid-samples/Sakurada_Fumiriya.vrm",
+    "thumbnail": "vrm/thumbnails/Sakurada_Fumiriya.jpg"
+  },
+  {
+    "id": "vroid/Seed-san",
+    "name": "Seed-san",
+    "name_ja": "",
+    "source": "vroid-samples",
+    "creator": "VRoid Project",
+    "tags": [
+      "Male",
+      "VRoid"
+    ],
+    "verified": true,
+    "url": "/static/vrm/vroid-samples/Seed-san.vrm",
+    "thumbnail": "vrm/thumbnails/Seed-san.jpg"
+  },
+  {
+    "id": "vroid/Sendagaya_Shibu",
+    "name": "Shibu",
+    "name_ja": "",
+    "source": "vroid-samples",
+    "creator": "VRoid Project",
+    "tags": [
+      "Male",
+      "VRoid"
+    ],
+    "verified": true,
+    "url": "/static/vrm/vroid-samples/Sendagaya_Shibu.vrm",
+    "thumbnail": "vrm/thumbnails/Sendagaya_Shibu.jpg"
+  },
+  {
+    "id": "vroid/Sendagaya_Shino",
+    "name": "Shino",
+    "name_ja": "",
+    "source": "vroid-samples",
+    "creator": "VRoid Project",
+    "tags": [
+      "Female",
+      "VRoid"
+    ],
+    "verified": true,
+    "url": "/static/vrm/vroid-samples/Sendagaya_Shino.vrm",
+    "thumbnail": "vrm/thumbnails/Sendagaya_Shino.jpg"
+  },
+  {
+    "id": "vroid/Victoria_Rubin",
+    "name": "Victoria",
+    "name_ja": "",
+    "source": "vroid-samples",
+    "creator": "VRoid Project",
+    "tags": [
+      "Female",
+      "VRoid"
+    ],
+    "verified": true,
+    "url": "/static/vrm/vroid-samples/Victoria_Rubin.vrm",
+    "thumbnail": "vrm/thumbnails/Victoria_Rubin.jpg"
+  },
+  {
+    "id": "vroid/Vita",
+    "name": "Vita",
+    "name_ja": "",
+    "source": "vroid-samples",
+    "creator": "VRoid Project",
+    "tags": [
+      "Female",
+      "VRoid"
+    ],
+    "verified": true,
+    "url": "/static/vrm/vroid-samples/Vita.vrm",
+    "thumbnail": "vrm/thumbnails/Vita.jpg"
+  },
+  {
+    "id": "vroid/Vivi",
+    "name": "Vivi",
+    "name_ja": "",
+    "source": "vroid-samples",
+    "creator": "VRoid Project",
+    "tags": [
+      "Female",
+      "VRoid"
+    ],
+    "verified": true,
+    "url": "/static/vrm/vroid-samples/Vivi.vrm",
+    "thumbnail": "vrm/thumbnails/Vivi.jpg"
+  },
+  {
+    "id": "vroid/fem_vroid",
+    "name": "Fem VRoid",
+    "name_ja": "",
+    "source": "vroid-samples",
+    "creator": "VRoid Project",
+    "tags": [
+      "Female",
+      "VRoid"
+    ],
+    "verified": true,
+    "url": "/static/vrm/vroid-samples/fem_vroid.vrm",
+    "thumbnail": "vrm/thumbnails/fem_vroid.jpg"
+  },
+  {
+    "id": "vroid/masc_vroid",
+    "name": "Masc VRoid",
+    "name_ja": "",
+    "source": "vroid-samples",
+    "creator": "VRoid Project",
+    "tags": [
+      "Male",
+      "VRoid"
+    ],
+    "verified": true,
+    "url": "/static/vrm/vroid-samples/masc_vroid.vrm",
+    "thumbnail": "vrm/thumbnails/masc_vroid.jpg"
+  }
+]

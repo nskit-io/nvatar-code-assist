@@ -60,7 +60,7 @@ async function sdkConnect() {
 
   // Configure SDK options on server
   try {
-    await fetch(S.API_BASE + '/api/v1/sdk/connect', {
+    const res = await fetch(S.API_BASE + '/api/v1/sdk/connect', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -70,9 +70,9 @@ async function sdkConnect() {
         channel_uuid: channelUUID,
       }),
     });
-    console.log(`[SDK] Connected: channel=${channelUUID} ctx=${contextAppend} wrap=${characterWrap}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
   } catch (e) {
-    console.warn('[SDK] Connect failed:', e.message);
+    addChatMsg('system', `SDK connect failed: ${e.message} — check server URL`);
   }
 
   // Show code panel on PC
@@ -85,16 +85,17 @@ async function sdkConnect() {
   if (channelUUID) {
     try {
       const res = await fetch(S.API_BASE + `/api/v1/sdk/results/${channelUUID}`);
-      const data = await res.json();
-      if (data.results && data.results.length > 0) {
-        const { addCodeResult } = await import('./chat.js');
-        data.results.forEach(r => addCodeResult({
-          request: r.request, response: r.response, status: r.status, ts: r.ts,
-        }));
-        console.log(`[SDK] Loaded ${data.results.length} previous results`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.results && data.results.length > 0) {
+          const { addCodeResult } = await import('./chat.js');
+          data.results.forEach(r => addCodeResult({
+            request: r.request, response: r.response, status: r.status, ts: r.ts,
+          }));
+        }
       }
     } catch (e) {
-      console.warn('[SDK] Failed to load history:', e.message);
+      // History load is non-critical
     }
   }
 
@@ -112,7 +113,6 @@ function _waitForWsAndActivate() {
       clearInterval(check);
       // Auto-activate code assist mode
       S.chatWs.send(JSON.stringify({ type: 'message', text: '코드 비서모드 온' }));
-      console.log('[SDK] Auto-sent: 코드 비서모드 온');
     }
   }, 500);
   // Timeout after 30s
@@ -121,22 +121,30 @@ function _waitForWsAndActivate() {
 
 // Show channel confirm dialog, then connect
 function _showChannelConfirm() {
+  const lang = getUiLang();
+  const txt = {
+    ko: { title: 'Claude Code 채널을 연결하셨나요?', desc: '터미널에서 아래 명령으로 채널을 먼저 시작해주세요.', yes: '연결했어요', no: '아직이에요', retry: '확인 후 클릭' },
+    en: { title: 'Have you connected the Claude Code channel?', desc: 'Start the channel first with this terminal command:', yes: 'Connected', no: 'Not yet', retry: 'Click when ready' },
+    ja: { title: 'Claude Code チャンネルを接続しましたか?', desc: 'ターミナルで以下のコマンドでチャンネルを起動してください。', yes: '接続済み', no: 'まだです', retry: '確認後クリック' },
+    zh: { title: '已连接 Claude Code 频道吗?', desc: '请先在终端运行以下命令启动频道:', yes: '已连接', no: '还没有', retry: '确认后点击' },
+  }[lang] || { title: 'Connect Claude Code channel?', desc: 'Start the channel first:', yes: 'Connected', no: 'Not yet', retry: 'Click when ready' };
+
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:200;';
   const dialog = document.createElement('div');
   dialog.style.cssText = 'background:#1e293b;border:1px solid #334155;border-radius:16px;padding:24px;max-width:420px;width:90%;text-align:center;';
   dialog.innerHTML = `
     <div style="font-size:24px;margin-bottom:12px;">⚡</div>
-    <h2 style="font-size:16px;color:#e2e8f0;margin-bottom:8px;">Claude Code 채널을 연결하셨나요?</h2>
+    <h2 style="font-size:16px;color:#e2e8f0;margin-bottom:8px;">${txt.title}</h2>
     <p style="font-size:12px;color:#94a3b8;margin-bottom:16px;line-height:1.6;">
-      터미널에서 아래 명령으로 채널을 먼저 시작해주세요.<br>
+      ${txt.desc}<br>
       <code style="display:block;margin-top:8px;padding:8px;background:#0f172a;border-radius:6px;color:#a5b4fc;font-size:11px;word-break:break-all;">
         NVATAR_CHANNEL_UUID=${channelUUID || '(UUID)'} claude --dangerously-load-development-channels server:nvatar
       </code>
     </p>
     <div style="display:flex;gap:8px;justify-content:center;">
-      <button id="cfmYes" style="padding:10px 24px;border:none;border-radius:8px;background:#6366f1;color:#fff;font-size:13px;cursor:pointer;">연결했어요</button>
-      <button id="cfmNo" style="padding:10px 24px;border:1px solid #334155;border-radius:8px;background:transparent;color:#94a3b8;font-size:13px;cursor:pointer;">아직이에요</button>
+      <button id="cfmYes" style="padding:10px 24px;border:none;border-radius:8px;background:#6366f1;color:#fff;font-size:13px;cursor:pointer;">${txt.yes}</button>
+      <button id="cfmNo" style="padding:10px 24px;border:1px solid #334155;border-radius:8px;background:transparent;color:#94a3b8;font-size:13px;cursor:pointer;">${txt.no}</button>
     </div>
   `;
   overlay.appendChild(dialog);
@@ -147,9 +155,8 @@ function _showChannelConfirm() {
     sdkConnect();
   };
   dialog.querySelector('#cfmNo').onclick = () => {
-    // Keep dialog, just highlight the command
     dialog.querySelector('code').style.border = '1px solid #6366f1';
-    dialog.querySelector('#cfmNo').textContent = '확인 후 클릭';
+    dialog.querySelector('#cfmNo').textContent = txt.retry;
     dialog.querySelector('#cfmNo').onclick = () => {
       overlay.remove();
       sdkConnect();
