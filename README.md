@@ -1,26 +1,47 @@
 # NVatar Code Assist
 
-AI Avatar + Claude Code Channel integration.
-Your 3D avatar becomes a code assistant that executes tasks and briefs you in character.
+> **Your 3D AI avatar becomes a code assistant — powered by Claude Code.**
+
+NVatar Code Assist connects your [NVatar](https://github.com/nskit-io/nvatar-demo) avatar room to a local [Claude Code](https://claude.ai/claude-code) session via MCP channels. Give code commands to your avatar, and Claude Code executes them on your machine.
+
+**[Live Demo](https://nskit-io.github.io/nvatar-code-assist/)** · [한국어](docs/README_KO.md) · [日本語](docs/README_JA.md) · [中文](docs/README_ZH.md)
+
+---
 
 ## How It Works
 
-```
-You (Browser)  →  NVatar Room  →  Avatar speaks results
-                      ↕
-              Claude Code Channel  →  Executes code tasks
-                      ↕
-              Your local Claude Code session
-```
+```mermaid
+sequenceDiagram
+    participant U as You (Browser)
+    participant A as NVatar Room
+    participant S as NVatar Server
+    participant C as Channel (Bun)
+    participant CC as Claude Code
 
-1. Avatar receives your code commands
-2. Claude Code executes them on your machine
-3. Avatar briefs you with character-wrapped results + voice (TTS)
-4. Raw results appear in the Code Assist panel
+    U->>A: "Read CURRENT_WORK.md and summarize"
+    A->>S: WebSocket message
+    S->>C: HTTP POST /message
+    C->>CC: MCP notification
+    CC->>CC: Execute task (read files, etc.)
+    CC->>C: reply tool (progress)
+    C->>S: HTTP POST /callback
+    S->>A: bubble (progress speech)
+    A->>U: Avatar speaks: "Reading the file..."
+    CC->>C: reply tool (success)
+    C->>S: HTTP POST /callback
+    S->>A: bubble (final result)
+    A->>U: Avatar speaks full result + Code Panel
+```
 
 ## Quick Start
 
-### 1. Clone & Install
+### Prerequisites
+
+- [Claude Code](https://claude.ai/claude-code) v2.1.80+
+- [Bun](https://bun.sh/) runtime
+- NVatar Server access (`https://nvatar.nskit.io` or self-hosted)
+
+### Step 1: Clone & Install
 
 ```bash
 git clone https://github.com/nskit-io/nvatar-code-assist.git
@@ -28,117 +49,215 @@ cd nvatar-code-assist/channel
 bun install
 ```
 
-### 2. Open the Lobby
+### Step 2: Open the Lobby
 
-Visit: [https://nskit-io.github.io/nvatar-code-assist/](https://nskit-io.github.io/nvatar-code-assist/)
+Visit **[https://nskit-io.github.io/nvatar-code-assist/](https://nskit-io.github.io/nvatar-code-assist/)**
 
-- Set **NVatar Server** URL (default: `https://nvatar.nskit.io`, or `http://localhost:54444` for local)
-- Click **Gen** to generate a Channel UUID
-- Copy the channel start command shown below
+```mermaid
+flowchart LR
+    A[Set Server URL] --> B[Generate Channel UUID]
+    B --> C[Copy channel command]
+    C --> D[Select Avatar]
+    D --> E[Enter Room]
+```
 
-### 3. Start Claude Code Channel
+1. Set **NVatar Server** URL (default: `https://nvatar.nskit.io`)
+2. Click **Gen** to generate a Channel UUID
+3. Copy the channel start command shown below the UUID
+
+### Step 3: Start Claude Code Channel
+
+Run the copied command in your terminal:
 
 ```bash
 NVATAR_CHANNEL_UUID=<your-uuid> claude --dangerously-load-development-channels server:nvatar
 ```
 
-### 4. Select Avatar & Enter Room
+> **Important:** Start the channel BEFORE entering the room. The channel process must be running for code commands to work.
 
-- Browse avatars with thumbnail cards, filter by gender or source
-- Choose your avatar and enter the room
-- The room auto-connects to your Claude Code session
-- Start giving code commands!
+### Step 4: Enter Room & Toggle Assist
 
-## Server Configuration
+1. Select your avatar in the lobby and enter the room
+2. Chat normally with your avatar (greeting, name setup, etc.)
+3. When ready for code work, click **⚡ Assist** in the toolbar
+4. Give code commands — Claude Code executes them!
 
-The lobby page lets you set the NVatar server URL. This is persisted in localStorage.
+```mermaid
+stateDiagram-v2
+    [*] --> NormalMode: Room Entry
+    NormalMode --> AssistMode: ⚡ Assist ON
+    AssistMode --> NormalMode: ⚡ Assist OFF
 
-| Mode | Server URL | Notes |
-|------|-----------|-------|
-| **Cloud** | `https://nvatar.nskit.io` | Default, hosted service |
-| **Local** | `http://localhost:54444` | Self-hosted NVatar server |
+    NormalMode: 일반 대화 모드
+    NormalMode: Avatar responds with personality
+    NormalMode: Conversations saved to memory
 
-### CORS (Self-Hosting)
-
-If hosting the lobby on GitHub Pages and connecting to your own NVatar server, ensure CORS is configured:
-
-```python
-# FastAPI example
-app.add_middleware(CORSMiddleware,
-    allow_origins=["https://your-username.github.io"],
-    allow_methods=["*"], allow_headers=["*"])
+    AssistMode: 코드 비서 모드
+    AssistMode: Messages relay to Claude Code
+    AssistMode: Results shown in Code Panel
+    AssistMode: No conversation memory tracking
 ```
 
-## SDK Modes
+## Architecture
 
-| URL Param | Default | Description |
-|-----------|---------|-------------|
-| `ctx=1` | OFF | Save code conversations to avatar memory |
-| `wrap=0` | ON | Skip character wrapping (raw results only) |
-| `channel=UUID` | - | Bind to specific Claude Code channel |
-| `server=URL` | - | Override NVatar server URL |
+```mermaid
+graph TB
+    subgraph Browser
+        L[Lobby - index.html]
+        R[Room - code-assist.html]
+        CP[Code Assist Panel]
+    end
+
+    subgraph NVatar Server
+        WS[WebSocket Handler]
+        GM[Gemma AI - Character]
+        SDK[SDK Mode Router]
+    end
+
+    subgraph Channel
+        BUN[Bun MCP Server :8789]
+        HB[Heartbeat 30s]
+    end
+
+    subgraph Local
+        CC[Claude Code Session]
+        FS[Your Codebase]
+    end
+
+    L -->|Select Avatar| R
+    R <-->|WebSocket| WS
+    WS -->|Assist OFF| GM
+    WS -->|Assist ON| SDK
+    SDK -->|HTTP POST| BUN
+    BUN <-->|MCP stdio| CC
+    CC -->|Read/Write| FS
+    CC -->|reply tool| BUN
+    BUN -->|callback| SDK
+    SDK -->|bubble| R
+    SDK -->|code_result| CP
+    HB -->|Re-register| SDK
+```
+
+## Two Modes
+
+### Normal Mode (default)
+
+Your avatar is a conversational AI companion powered by Gemma. It has personality, memory, emotions, and speaks with TTS. Daily conversations are saved and the avatar evolves over time.
+
+If you ask for code work while in Normal Mode, the avatar will guide you:
+> "코드 작업은 ⚡ Assist 버튼을 눌러서 비서모드를 켜야 해요!"
+
+### Code Assist Mode (⚡ toggle)
+
+Messages are relayed directly to Claude Code — no Gemma involvement. The avatar becomes a transparent pipe:
+
+| Action | Behavior |
+|--------|----------|
+| Your message | → Claude Code (direct relay) |
+| Progress update | ← Avatar speaks it |
+| Final result | ← Avatar speaks it + Code Panel |
+| Ask avatar's opinion | → Gemma responds (with result context) |
+
+**Opinion detection** works in 4 languages:
+- 🇰🇷 "어떻게 생각해?", "네 의견은?"
+- 🇺🇸 "What do you think?", "Your opinion?"
+- 🇯🇵 "どう思う?", "意見は?"
+- 🇨🇳 "你觉得怎么样?", "你的意见?"
+
+## URL Parameters
+
+| Param | Default | Description |
+|-------|---------|-------------|
+| `avatar` | - | Avatar ID |
+| `vrm` | Victoria_Rubin | VRM model URL |
+| `channel` | - | Channel UUID |
+| `server` | `https://nvatar.nskit.io` | NVatar server URL |
+| `assist` | `0` | Auto-enable assist mode (`1` = ON) |
+| `ctx` | `0` | Save code conversations to avatar memory |
+| `wrap` | `1` | Character wrapping (Gemma) for responses |
 
 ## NVatarSDK API
 
 The room exposes `window.NVatarSDK` for external integration:
 
 ```javascript
-NVatarSDK.onLookupResult = (data) => { /* new result */ };
-NVatarSDK.getLookupResults();    // all stored results
+// Subscribe to code results
+NVatarSDK.onLookupResult = (data) => {
+  console.log(data.query, data.items);
+};
+
+// Read stored results
+NVatarSDK.getLookupResults();    // all results
 NVatarSDK.getUnreadCount();      // unread count
 NVatarSDK.clearLookupResults();  // clear all
 ```
 
-## Channel Environment Variables
+## Channel Configuration
 
-Set in `channel/.env` or pass as environment variables:
+### Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
+| `NVATAR_CHANNEL_UUID` | auto-generated | Channel identifier (match with lobby) |
 | `NVATAR_SERVER_URL` | `http://localhost:54444` | NVatar server endpoint |
 | `NVATAR_CHANNEL_PORT` | `8789` | Channel HTTP server port |
-| `NVATAR_CHANNEL_UUID` | auto-generated | Channel identifier |
+| `NVATAR_CHANNEL_SECRET` | `nvatar_ch_2026_secret` | Authentication token |
 
-## Architecture
+### Heartbeat
 
-```
-Browser (code-assist.html)
-    ↓ WebSocket
-NVatar Server (FastAPI + Gemma)
-    ↓ HTTP POST :8789
-Channel MCP Server (Bun)
-    ↓ MCP stdio
-Claude Code Session (local)
-    ↓ reply tool
-Channel → NVatar Server → Gemma wrap → Avatar speech
+The channel server re-registers with NVatar every 30 seconds. This means:
+- NVatar server restarts → channel auto-reconnects within 30s
+- No manual re-registration needed
+
+### Self-Hosting CORS
+
+If hosting the lobby on GitHub Pages with your own NVatar server:
+
+```python
+# FastAPI
+app.add_middleware(CORSMiddleware,
+    allow_origins=["https://your-username.github.io"],
+    allow_methods=["*"], allow_headers=["*"])
 ```
 
 ## Project Structure
 
 ```
 nvatar-code-assist/
-├── index.html          # Lobby — avatar selection + server config
-├── code-assist.html    # Room — 3D avatar + chat + code panel
-├── js/room/            # Modular room JS (18 files)
-│   ├── state.js        # Shared state + API_BASE resolution
-│   ├── main-assist.js  # Code assist entry point
-│   ├── chat.js         # WebSocket chat + code panel
-│   ├── lookup.js       # NVatarSDK public API
-│   └── ...             # scene, animation, tts, stt, i18n, etc.
+├── index.html              # Lobby — avatar selection + server config
+├── code-assist.html        # Room — 3D avatar + chat + code panel
+├── js/room/                # Room modules (16 files)
+│   ├── state.js            # Shared state + API_BASE resolution
+│   ├── main-assist.js      # Code assist toggle + SDK connect
+│   ├── chat.js             # WebSocket chat + code panel
+│   ├── lookup.js           # NVatarSDK public API
+│   ├── scene.js            # Three.js 3D scene
+│   ├── animation.js        # Mixamo VRM animation
+│   ├── i18n.js             # 4-language UI translations
+│   ├── tts.js / stt.js     # Voice (ElevenLabs TTS, Whisper STT)
+│   └── ...                 # mood, roaming, bubble, mobile, walk
 ├── vrm/
-│   ├── models.json     # Static model list (GitHub Pages fallback)
-│   └── thumbnails/     # VRM avatar thumbnails (256x256)
+│   ├── models.json         # Static model list (offline fallback)
+│   └── thumbnails/         # VRM avatar thumbnails (256×256)
 ├── channel/
-│   ├── server.ts       # MCP channel server (Bun)
-│   └── package.json    # Channel dependencies
-└── README.md
+│   ├── server.ts           # MCP channel server (Bun)
+│   └── package.json
+└── docs/
+    ├── README_KO.md
+    ├── README_JA.md
+    └── README_ZH.md
 ```
 
-## Requirements
+## Troubleshooting
 
-- [Claude Code](https://claude.com/claude-code) v2.1.80+
-- [Bun](https://bun.sh/) runtime
-- NVatar Server access (nvatar.nskit.io or self-hosted)
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| "채널 전달 실패: 401" | Token mismatch | Restart channel with latest code |
+| Avatar doesn't relay | Assist toggle is OFF | Click ⚡ Assist button |
+| "서버 연결 대기 중" | Server URL wrong | Check NVatar Server field in lobby |
+| Code panel empty after refresh | Different channel UUID | Use same UUID as channel process |
+| TTS not playing on refresh | Browser autoplay policy | Click anywhere first, then refresh |
+| Channel lost after server restart | In-memory registration cleared | Heartbeat auto-recovers in 30s |
 
 ## License
 
@@ -146,4 +265,4 @@ Apache-2.0
 
 ---
 
-Built with [NVatar](https://github.com/nskit-io/nvatar-demo) — AI Avatar Chat Platform
+Built with [NVatar](https://github.com/nskit-io/nvatar-demo) — AI 3D Avatar Chat Platform
