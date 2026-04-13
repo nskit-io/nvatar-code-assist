@@ -113,14 +113,14 @@ stateDiagram-v2
     NormalMode --> AssistMode: ⚡ Assist ON
     AssistMode --> NormalMode: ⚡ Assist OFF
 
-    NormalMode: 일반 대화 모드
-    NormalMode: Avatar responds with personality
-    NormalMode: Conversations saved to memory
+    NormalMode: 普通对话模式
+    NormalMode: 头像以个性化方式回应
+    NormalMode: 对话保存到记忆
 
-    AssistMode: 코드 비서 모드
-    AssistMode: Messages relay to Claude Code
-    AssistMode: Results shown in Code Panel
-    AssistMode: No conversation memory tracking
+    AssistMode: 代码助手模式
+    AssistMode: 消息转发至Claude Code
+    AssistMode: 结果显示在代码面板
+    AssistMode: 不追踪对话记忆
 ```
 
 ## 架构
