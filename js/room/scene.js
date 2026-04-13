@@ -46,6 +46,10 @@ export function init() {
   S.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   S.renderer.toneMapping = THREE.ACESFilmicToneMapping;
   S.renderer.toneMappingExposure = 1.2;
+  S.renderer.domElement.style.position = 'absolute';
+  S.renderer.domElement.style.top = '0';
+  S.renderer.domElement.style.left = '0';
+  S.renderer.domElement.style.zIndex = '0';
   document.body.appendChild(S.renderer.domElement);
 
   const bubbleLayer = document.createElement('div');
