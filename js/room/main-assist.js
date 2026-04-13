@@ -145,7 +145,12 @@ function _waitForWsAndSend(text) {
       _sendAssistCommand(text);
     }
   }, 500);
-  setTimeout(() => clearInterval(check), 30000);
+  setTimeout(() => {
+    clearInterval(check);
+    if (!S.chatWs || S.chatWs.readyState !== 1) {
+      addChatMsg('system', '⚠ WebSocket connection timeout — please refresh');
+    }
+  }, 30000);
 }
 
 function _showChannelSetup() {
@@ -184,9 +189,15 @@ window.toggleCodeAssist = function() {
       _showChannelSetup();
       return;
     }
-    _sdkConnect();
-    _waitForWsAndSend('코드 비서모드 온');
-    addChatMsg('system', '⚡ Code Assist ON');
+    _sdkConnect().then(() => {
+      if (!_sdkConnected) {
+        _assistActive = false;
+        _updateAssistUI(false);
+        return;
+      }
+      _waitForWsAndSend('코드 비서모드 온');
+      addChatMsg('system', '⚡ Code Assist ON');
+    });
 
     // Update URL for refresh persistence
     const url = new URL(location.href);

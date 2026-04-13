@@ -61,6 +61,9 @@ export function connectChat(avatarId) {
       if (mood) setMood(mood);
     } else if (data.type === 'code_result') {
       addCodeResult(data);
+    } else if (data.type === 'error') {
+      S._waitingForResponse = false;
+      console.warn('[Chat] Server error:', data.text);
     } else if (data.type === 'emotion_update' && data.emotions) {
       const emo = data.emotions;
       if (emo.joy > 65) { setMood('happy'); playGesture('cheer'); }

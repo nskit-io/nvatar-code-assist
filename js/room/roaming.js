@@ -98,6 +98,13 @@ export function pauseRoaming() {
   _pauseMonologue();
 }
 
+export function stopAllTimers() {
+  roamActive = false;
+  monoActive = false;
+  if (roamTimer) { clearTimeout(roamTimer); roamTimer = null; }
+  if (monoTimer) { clearTimeout(monoTimer); monoTimer = null; }
+}
+
 // --- Monologue ---
 const MONO = {
   minInterval: 30,

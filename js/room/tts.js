@@ -12,6 +12,7 @@ export function stopTTS() {
   ttsPlaying = false;
   if (ttsCurrentAudio) {
     ttsCurrentAudio.pause();
+    if (ttsCurrentAudio.src) URL.revokeObjectURL(ttsCurrentAudio.src);
     ttsCurrentAudio = null;
   }
 }
@@ -95,10 +96,11 @@ async function processQueue() {
     const res = await _ttsWithFallback(ttsUrl);
     if (!res.ok) { processQueue(); return; }
     const blob = await res.blob();
-    const audio = new Audio(URL.createObjectURL(blob));
+    const blobUrl = URL.createObjectURL(blob);
+    const audio = new Audio(blobUrl);
     audio.volume = TTS_CONFIG.volume;
-    audio.onended = () => { ttsCurrentAudio = null; processQueue(); };
-    audio.onerror = () => { ttsCurrentAudio = null; processQueue(); };
+    audio.onended = () => { URL.revokeObjectURL(blobUrl); ttsCurrentAudio = null; processQueue(); };
+    audio.onerror = () => { URL.revokeObjectURL(blobUrl); ttsCurrentAudio = null; processQueue(); };
     ttsCurrentAudio = audio;
     audio.play().catch(() => { ttsCurrentAudio = null; processQueue(); });
   } catch (e) {

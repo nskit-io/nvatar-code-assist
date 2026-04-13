@@ -32,7 +32,11 @@ try {
   }
 } catch {}
 
-const CHANNEL_SECRET = process.env.NVATAR_CHANNEL_SECRET || 'nvatar_ch_2026_secret'
+const CHANNEL_SECRET = process.env.NVATAR_CHANNEL_SECRET || (() => {
+  const generated = randomBytes(16).toString('hex')
+  process.stderr.write(`nvatar channel: WARNING — no NVATAR_CHANNEL_SECRET set, generated ephemeral: ${generated}\n`)
+  return generated
+})()
 const CHANNEL_PORT = parseInt(process.env.NVATAR_CHANNEL_PORT || '8789', 10)
 const NVATAR_SERVER = process.env.NVATAR_SERVER_URL || 'http://localhost:54444'
 // UUID: passed via env (from user's index page) or auto-generated
@@ -116,6 +120,11 @@ mcp.setRequestHandler(CallToolRequestSchema, async req => {
         const text = args.text as string
         const status = (args.status as string) || 'success'
 
+        const parsedId = parseInt(avatar_id, 10)
+        if (isNaN(parsedId) || parsedId <= 0) {
+          throw new Error(`invalid avatar_id: ${avatar_id}`)
+        }
+
         // POST callback to NVatar Server
         const res = await fetch(`${NVATAR_SERVER}/api/v1/channel/callback`, {
           method: 'POST',
@@ -123,7 +132,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async req => {
             'Content-Type': 'application/json',
             'X-Channel-Token': CHANNEL_SECRET,
           },
-          body: JSON.stringify({ avatar_id: parseInt(avatar_id, 10), text, status, channel_uuid: CHANNEL_UUID }),
+          body: JSON.stringify({ avatar_id: parsedId, text, status, channel_uuid: CHANNEL_UUID }),
         })
 
         if (!res.ok) {

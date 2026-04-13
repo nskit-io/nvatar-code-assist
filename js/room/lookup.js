@@ -2,6 +2,7 @@
 import { t } from './i18n.js';
 
 const _lookupStore = [];
+const MAX_LOOKUP_RESULTS = 50;
 let _lookupUnread = 0;
 let _badgeBlink = null;
 
@@ -19,6 +20,11 @@ export function addLookupResult(data) {
     : { ...data, ts: new Date().toISOString(), read: false };
 
   _lookupStore.push(result);
+  if (_lookupStore.length > MAX_LOOKUP_RESULTS) {
+    _lookupStore.shift();
+    const list = document.getElementById('lookupList');
+    if (list && list.lastChild) list.removeChild(list.lastChild);
+  }
   _lookupUnread++;
   _updateBadge();
   _renderLookupItem(result, _lookupStore.length - 1);
