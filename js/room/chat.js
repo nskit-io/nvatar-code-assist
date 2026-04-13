@@ -66,6 +66,7 @@ export function connectChat(avatarId) {
       if (emo.joy > 65) { setMood('happy'); playGesture('cheer'); }
       else if (emo.sadness > 50) setMood('sad');
       else if (emo.excitement > 60) { setMood('happy'); playGesture('wave'); }
+      else if (emo.curiosity > 65) { setMood('happy'); playGesture('wave'); }
     }
   };
 
@@ -156,32 +157,60 @@ export function addCodeResult(data) {
   }
 
   const id = ++_codeBlockId;
-  const block = document.createElement('div');
-  block.className = 'code-block';
-  block.id = 'code-block-' + id;
-
+  const dbId = data.id || 0;
   const isError = data.status === 'error';
   const time = data.ts ? data.ts.slice(11, 19) : '';
-
   const resId = 'cb-res-' + id;
 
   // Collapse previous blocks
   body.querySelectorAll('.cb-res').forEach(r => { r.style.display = 'none'; });
 
-  block.innerHTML = `
-    <div class="cb-req" onclick="var r=document.getElementById('${resId}');r.style.display=r.style.display==='none'?'block':'none'">
-      <span class="cb-title" title="${_escHtml(data.request || '')}">▶ ${_escHtml(data.request || '')}</span>
-      <span class="cb-time">${time}</span>
-      <button class="cb-close" onclick="event.stopPropagation();this.closest('.code-block').remove()">&times;</button>
-    </div>
-    <div class="cb-res${isError ? ' error' : ''}" id="${resId}">${_escHtml(data.response || '')}</div>
-  `;
+  const block = document.createElement('div');
+  block.className = 'code-block';
+  block.id = 'code-block-' + id;
+  block.dataset.dbId = dbId;
 
+  // Header (click to toggle response)
+  const header = document.createElement('div');
+  header.className = 'cb-req';
+  header.innerHTML = `
+    <span class="cb-title" title="${_escHtml(data.request || '')}">▶ ${_escHtml(data.request || '')}</span>
+    <span class="cb-time">${time}</span>
+  `;
+  header.addEventListener('click', () => {
+    const res = document.getElementById(resId);
+    if (res) res.style.display = res.style.display === 'none' ? 'block' : 'none';
+  });
+
+  // Close button
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'cb-close';
+  closeBtn.textContent = '×';
+  closeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    block.remove();
+    if (dbId > 0) {
+      const url = S.API_BASE + '/api/v1/sdk/results/' + dbId;
+      console.log('[CodeAssist] Deleting:', url);
+      fetch(url, { method: 'DELETE' })
+        .then(r => console.log('[CodeAssist] Delete response:', r.status))
+        .catch(e => console.warn('[CodeAssist] Delete error:', e));
+    }
+  });
+  header.appendChild(closeBtn);
+
+  // Response body
+  const resDiv = document.createElement('div');
+  resDiv.className = 'cb-res' + (isError ? ' error' : '');
+  resDiv.id = resId;
+  resDiv.textContent = data.response || '';
+
+  block.appendChild(header);
+  block.appendChild(resDiv);
   body.appendChild(block);
-  // Scroll panel to bottom, response content to top
+
   body.scrollTop = body.scrollHeight;
-  const resEl = document.getElementById(resId);
-  if (resEl) resEl.scrollTop = 0;
+  resDiv.scrollTop = 0;
 }
 
 function _escHtml(s) {

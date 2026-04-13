@@ -109,7 +109,7 @@ async function _sdkConnect() {
         if (data.results && data.results.length > 0) {
           const { addCodeResult } = await import('./chat.js');
           data.results.forEach(r => addCodeResult({
-            request: r.request, response: r.response, status: r.status, ts: r.ts,
+            id: r.id, request: r.request, response: r.response, status: r.status, ts: r.ts,
           }));
         }
       }
