@@ -117,15 +117,20 @@ Messages relay directly to Claude Code. The avatar becomes a transparent pipe:
 
 > **Code Assist mode does NOT save conversations to the avatar's memory.**
 
+Code Assist results are stored in a separate Code Panel database, NOT in the avatar's Franchise Memory. This is controlled by `save_franchise_memory = false` — the pattern's default for sensitive data. Your code conversations never influence the avatar's personality or become part of its long-term recall.
+
 | | Normal Mode | Code Assist Mode |
 |---|---|---|
 | Conversation log | Saved (builds personality) | Not saved |
 | Emotion tracking | Active | Disabled |
+| Franchise Memory | Accumulates over time | Disabled (`save_franchise_memory = false`) |
 | Code results | — | Code Panel only (separate storage) |
 
 When you toggle back to Normal Mode, your avatar continues from where you left off.
 
 ## Architecture
+
+Code Assist is implemented as a `CodeAssistPattern` — one of several pluggable behaviors in the [NVatar SDK](https://github.com/nskit-io/nvatar-sdk) pattern system. The SDK's BehaviorPattern Registry routes messages to the correct pattern based on mode, so Code Assist runs independently from the avatar's personality engine.
 
 ```mermaid
 graph TB
@@ -230,10 +235,17 @@ NVatarSDK.getUnreadCount();
 NVatarSDK.clearLookupResults();
 ```
 
+## Related Projects
+
+| Project | Description |
+|---------|-------------|
+| [NVatar Demo](https://github.com/nskit-io/nvatar-demo) | AI 3D Avatar Chat Platform — the avatar runtime |
+| [NVatar SDK](https://github.com/nskit-io/nvatar-sdk) | BehaviorPattern SDK — build pluggable avatar services |
+
 ## License
 
 Apache-2.0
 
 ---
 
-Built with [NVatar](https://github.com/nskit-io/nvatar-demo) — AI 3D Avatar Chat Platform
+Built with [NVatar](https://github.com/nskit-io/nvatar-demo) and [NVatar SDK](https://github.com/nskit-io/nvatar-sdk) — AI 3D Avatar Chat Platform
