@@ -219,6 +219,18 @@ const _entryCheck = setInterval(() => {
   if (S.chatWs && S.chatWs.readyState === 1) {
     clearInterval(_entryCheck);
 
+    // Debounced assist restore — prevents double execution on quick reconnects
+    let _assistRestoring = false;
+    function _restoreAssist(label) {
+      if (_assistRestoring) return;
+      _assistRestoring = true;
+      _sdkConnected = false;
+      _sdkConnect();
+      _sendAssistCommand('코드 비서모드 온');
+      addChatMsg('system', `⚡ Code Assist ${label}`);
+      setTimeout(() => { _assistRestoring = false; }, 5000);
+    }
+
     if (autoAssist && channelUUID) {
       // ?assist=1 — restore assist mode (refresh persistence)
       // Mute TTS for auto-restore (browser autoplay policy blocks it anyway)
@@ -226,10 +238,7 @@ const _entryCheck = setInterval(() => {
       TTS_CONFIG.enabled = false;
       _assistActive = true;
       _updateAssistUI(true);
-      _sdkConnect();
-      _sendAssistCommand('코드 비서모드 온');
-      addChatMsg('system', '⚡ Code Assist ON (auto)');
-      // Restore TTS after mode toggle response arrives
+      _restoreAssist('ON (auto)');
       setTimeout(() => { TTS_CONFIG.enabled = wasTTSEnabled; }, 5000);
     } else {
       // No assist — reset server state silently (no Gemma response)
@@ -239,10 +248,7 @@ const _entryCheck = setInterval(() => {
     // Register reconnect hook — restore assist mode after server restart
     S.hooks.onReconnect = () => {
       if (_assistActive && channelUUID) {
-        _sdkConnected = false;
-        _sdkConnect();
-        _sendAssistCommand('코드 비서모드 온');
-        addChatMsg('system', '⚡ Code Assist reconnected');
+        _restoreAssist('reconnected');
       }
     };
   }
