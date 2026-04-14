@@ -25,6 +25,13 @@ export function connectChat(avatarId) {
 
   S.chatWs.onopen = () => {
     addChatMsg('system', t('connected'));
+    // Signal server that client is ready (TTS initialized)
+    // Small delay ensures TTS voice list is loaded
+    setTimeout(() => {
+      if (S.chatWs && S.chatWs.readyState === 1) {
+        S.chatWs.send(JSON.stringify({ type: 'client_ready' }));
+      }
+    }, 1500);
   };
 
   S.chatWs.onmessage = (e) => {
