@@ -25,11 +25,13 @@ export function connectChat(avatarId) {
 
   S.chatWs.onopen = () => {
     addChatMsg('system', t('connected'));
+    _reconnectAttempt = 0;
     // Signal server that client is ready (TTS initialized)
-    // Small delay ensures TTS voice list is loaded
     setTimeout(() => {
       if (S.chatWs && S.chatWs.readyState === 1) {
         S.chatWs.send(JSON.stringify({ type: 'client_ready' }));
+        // Restore hooks (e.g. Code Assist re-registers after server restart)
+        if (S.hooks.onReconnect) S.hooks.onReconnect();
       }
     }, 1500);
   };

@@ -2,7 +2,7 @@
 // All modules import S and read/write properties on this single object.
 // Using an object (not primitive exports) so mutations are visible across modules.
 
-// API base: from URL param > localStorage > hostname detection > default
+// API base: from URL param > localStorage > hostname detection > empty (same-origin)
 const _params = new URLSearchParams(location.search);
 const _serverParam = _params.get('server');
 const _savedServer = localStorage.getItem('nvatar_server_url');
@@ -57,6 +57,8 @@ const S = {
   hooks: {
     onBubbleComplete: null,
     onTTSComplete: null,
+    onChatMsg: null,
+    onReconnect: null,
   },
 };
 

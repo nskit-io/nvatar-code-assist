@@ -235,6 +235,16 @@ const _entryCheck = setInterval(() => {
       // No assist — reset server state silently (no Gemma response)
       _sdkDisconnect();
     }
+
+    // Register reconnect hook — restore assist mode after server restart
+    S.hooks.onReconnect = () => {
+      if (_assistActive && channelUUID) {
+        _sdkConnected = false;
+        _sdkConnect();
+        _sendAssistCommand('코드 비서모드 온');
+        addChatMsg('system', '⚡ Code Assist reconnected');
+      }
+    };
   }
 }, 500);
 setTimeout(() => clearInterval(_entryCheck), 30000);
