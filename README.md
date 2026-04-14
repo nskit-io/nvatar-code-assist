@@ -223,6 +223,19 @@ The channel server includes automatic retry (3 attempts, 2s intervals) for MCP n
 
 > For more on Claude Code Channels, see the [Claude Code documentation](https://docs.anthropic.com/en/docs/claude-code).
 
+## Reliability
+
+Code Assist includes multiple layers of retry and error handling:
+
+| Layer | Behavior |
+|-------|----------|
+| **Channel → Claude Code** | MCP notification retry (3 attempts, 2s intervals) |
+| **Server → Channel** | HTTP POST retry (2 attempts, 2s intervals) |
+| **Delivery failure** | Simple error bubble — avatar does NOT generate a creative response about the failure |
+| **TTS initialization** | `client_ready` handshake ensures TTS is initialized before avatar speaks |
+
+When a message fails to reach Claude Code after retries, the avatar displays a plain error message instead of routing to the local AI (Gemma). This prevents confusing responses where the avatar "makes up" an answer to a code command.
+
 ## Service & Limits
 
 | Service | Notes |
@@ -242,6 +255,9 @@ The channel server includes automatic retry (3 attempts, 2s intervals) for MCP n
 | Code panel empty after refresh | Make sure you're using the same Channel UUID |
 | TTS not working | Browser autoplay policy — interact with the page first |
 | Channel not connecting | Restart Claude Code with the same UUID |
+| Avatar doesn't move to center when speaking | Fixed — `returnToCenter()` is now called on every bubble event |
+| Avatar speaks before TTS is ready | Fixed — `client_ready` handshake defers greeting until scene is loaded |
+| Message delivery failed silently | Server now retries 2x with 2s interval; shows error on final failure |
 
 ## Project Structure
 
