@@ -4,7 +4,7 @@ import { t } from './i18n.js';
 import { showBubble } from './bubble.js';
 import { detectMoodFromText, detectGestureFromText, setMood } from './mood.js';
 import { playGesture } from './animation.js';
-import { speakTTS } from './tts.js';
+import { speakTTS, stopTTS } from './tts.js';
 import { returnToCenter, pauseRoaming } from './roaming.js';
 import { addLookupResult, NVatarSDK } from './lookup.js';
 
@@ -50,6 +50,12 @@ export function connectChat(avatarId) {
         const gesture = detectGestureFromText(data.text);
         if (gesture) setTimeout(() => playGesture(gesture), 500);
       }
+      pauseRoaming();
+    } else if (data.type === 'push_prepare') {
+      // Server push incoming — reset all avatar state for clean delivery
+      stopTTS();
+      S._waitingForResponse = false;
+      returnToCenter();
       pauseRoaming();
     } else if (data.type === 'typing') {
       showBubble(0, '...');
