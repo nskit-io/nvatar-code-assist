@@ -221,11 +221,17 @@ const _entryCheck = setInterval(() => {
 
     if (autoAssist && channelUUID) {
       // ?assist=1 — restore assist mode (refresh persistence)
+      // Mute TTS for auto-restore (browser autoplay policy blocks it anyway)
+      const { TTS_CONFIG } = await import('./tts.js');
+      const wasTTSEnabled = TTS_CONFIG.enabled;
+      TTS_CONFIG.enabled = false;
       _assistActive = true;
       _updateAssistUI(true);
       _sdkConnect();
       _sendAssistCommand('코드 비서모드 온');
       addChatMsg('system', '⚡ Code Assist ON (auto)');
+      // Restore TTS after mode toggle response arrives
+      setTimeout(() => { TTS_CONFIG.enabled = wasTTSEnabled; }, 5000);
     } else {
       // No assist — reset server state silently (no Gemma response)
       _sdkDisconnect();
