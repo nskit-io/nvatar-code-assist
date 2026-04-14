@@ -104,6 +104,10 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
             enum: ['success', 'error', 'progress'],
             description: 'Result status. success=task complete, error=task failed, progress=interim update.',
           },
+          tts_text: {
+            type: 'string',
+            description: 'Optional TTS-friendly version of the result. Omit tables, symbols, and special characters. Use natural spoken language. If omitted, the avatar will read the raw text.',
+          },
         },
         required: ['avatar_id', 'text'],
       },
@@ -119,6 +123,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async req => {
         const avatar_id = args.avatar_id as string
         const text = args.text as string
         const status = (args.status as string) || 'success'
+        const tts_text = (args.tts_text as string) || ''
 
         const parsedId = parseInt(avatar_id, 10)
         if (isNaN(parsedId) || parsedId <= 0) {
@@ -132,7 +137,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async req => {
             'Content-Type': 'application/json',
             'X-Channel-Token': CHANNEL_SECRET,
           },
-          body: JSON.stringify({ avatar_id: parsedId, text, status, channel_uuid: CHANNEL_UUID }),
+          body: JSON.stringify({ avatar_id: parsedId, text, status, tts_text, channel_uuid: CHANNEL_UUID }),
         })
 
         if (!res.ok) {
@@ -150,6 +155,40 @@ mcp.setRequestHandler(CallToolRequestSchema, async req => {
   }
 })
 
+// --- MCP notification with retry ---
+const MAX_RETRIES = 3
+const RETRY_DELAY_MS = 2000
+
+async function sendWithRetry(avatar_id: number, text: string) {
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      await mcp.notification({
+        method: 'notifications/claude/channel',
+        params: {
+          content: text,
+          meta: {
+            avatar_id: String(avatar_id),
+            user: 'owner',
+            source: 'nvatar-room',
+            ts: new Date().toISOString(),
+          },
+        },
+      })
+      if (attempt > 1) {
+        process.stderr.write(`nvatar channel: notification delivered on attempt ${attempt}\n`)
+      }
+      return
+    } catch (err: any) {
+      process.stderr.write(`nvatar channel: notification attempt ${attempt}/${MAX_RETRIES} failed: ${err.message}\n`)
+      if (attempt < MAX_RETRIES) {
+        await Bun.sleep(RETRY_DELAY_MS)
+      } else {
+        throw err
+      }
+    }
+  }
+}
+
 // --- HTTP Server: receives messages from NVatar Server ---
 const httpServer = Bun.serve({
   port: CHANNEL_PORT,
@@ -166,19 +205,8 @@ const httpServer = Bun.serve({
           return new Response('unauthorized', { status: 401 })
         }
 
-        // Push notification to Claude Code
-        await mcp.notification({
-          method: 'notifications/claude/channel',
-          params: {
-            content: body.text,
-            meta: {
-              avatar_id: String(body.avatar_id),
-              user: 'owner',
-              source: 'nvatar-room',
-              ts: new Date().toISOString(),
-            },
-          },
-        })
+        // Push notification to Claude Code with retry
+        await sendWithRetry(body.avatar_id, body.text)
 
         return Response.json({ ok: true })
       } catch (err: any) {

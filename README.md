@@ -107,7 +107,8 @@ Messages relay directly to Claude Code. The avatar becomes a transparent pipe:
 |--------|----------|
 | Your message | Sent to Claude Code |
 | Progress update | Avatar speaks it |
-| Final result | Avatar speaks it + Code Panel |
+| Final result | Avatar speaks TTS-friendly text + Code Panel shows raw data |
+| Direct push | Claude Code can push results without avatar request |
 | Ask avatar's opinion | Avatar responds with context |
 
 **Opinion detection** works in 4 languages — ask your avatar what it thinks about the result:
@@ -127,6 +128,45 @@ Code Assist results are stored in a separate Code Panel database, NOT in the ava
 | Code results | — | Code Panel only (separate storage) |
 
 When you toggle back to Normal Mode, your avatar continues from where you left off.
+
+## TTS-Friendly Response Split
+
+When Claude Code returns results containing tables, symbols, or formatted data, the response is split into two streams:
+
+```mermaid
+flowchart LR
+    CC[Claude Code] -->|reply text + tts_text| CH[Channel Server]
+    CH --> NV[NVatar Server]
+    NV -->|tts_text| B[Avatar Bubbles + TTS]
+    NV -->|raw text| P[Code Panel]
+```
+
+| Field | Purpose | Example |
+|-------|---------|---------|
+| `text` | Raw response with tables, code, symbols | `\| Plan \| Price \| ...` |
+| `tts_text` | Natural spoken language for the avatar | "Starter is 5 dollars per month..." |
+
+The avatar speaks the TTS-friendly version while the Code Panel displays the full raw data. If `tts_text` is omitted, the avatar reads the raw text as before (backward compatible).
+
+## Server Push (Direct Push)
+
+Claude Code can push results to the avatar **without a prior request**. When you work directly in the terminal and want the avatar to announce the result:
+
+```mermaid
+sequenceDiagram
+    participant T as Terminal (direct)
+    participant CC as Claude Code
+    participant S as NVatar Server
+    participant A as Avatar
+
+    T->>CC: Direct work (no avatar request)
+    CC->>S: reply(avatar_id, text)
+    Note over S: No pending callback
+    S->>A: WebSocket push (direct)
+    A->>A: Speaks result
+```
+
+This enables a hybrid workflow: work directly in the terminal, and your avatar stays informed and announces results in real-time.
 
 ## Architecture
 
@@ -178,6 +218,8 @@ flowchart LR
 ```
 
 The `channel/` directory contains the ready-to-use MCP server. Claude Code launches it automatically when you run the start command. No additional configuration needed.
+
+The channel server includes automatic retry (3 attempts, 2s intervals) for MCP notification delivery, ensuring messages reach Claude Code even during brief connection instability.
 
 > For more on Claude Code Channels, see the [Claude Code documentation](https://docs.anthropic.com/en/docs/claude-code).
 
