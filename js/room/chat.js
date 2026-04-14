@@ -25,13 +25,14 @@ export function connectChat(avatarId) {
 
   S.chatWs.onopen = () => {
     addChatMsg('system', t('connected'));
+    const isReconnect = _reconnectAttempt > 0;
     _reconnectAttempt = 0;
     // Signal server that client is ready (TTS initialized)
     setTimeout(() => {
       if (S.chatWs && S.chatWs.readyState === 1) {
         S.chatWs.send(JSON.stringify({ type: 'client_ready' }));
-        // Restore hooks (e.g. Code Assist re-registers after server restart)
-        if (S.hooks.onReconnect) S.hooks.onReconnect();
+        // Only fire onReconnect for RE-connections, not the first connect
+        if (isReconnect && S.hooks.onReconnect) S.hooks.onReconnect();
       }
     }, 1500);
   };
