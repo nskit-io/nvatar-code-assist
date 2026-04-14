@@ -7,7 +7,7 @@ import { loadVRM, loadLocalVRM } from './vrm-loader.js';
 import { setMood } from './mood.js';
 import { sendChat, addChatMsg } from './chat.js';
 import { toggleMic } from './stt.js';
-import { changeVoice, loadVoices } from './tts.js';
+import { changeVoice, loadVoices, TTS_CONFIG } from './tts.js';
 import { NVatarSDK } from './lookup.js';
 import { mobileToggleLookupPanel, mobileChangeLang, mobileToggleTTS, openMobileLookup, closeMobileLookup, initMobile } from './mobile.js';
 
@@ -222,7 +222,6 @@ const _entryCheck = setInterval(() => {
     if (autoAssist && channelUUID) {
       // ?assist=1 — restore assist mode (refresh persistence)
       // Mute TTS for auto-restore (browser autoplay policy blocks it anyway)
-      const { TTS_CONFIG } = await import('./tts.js');
       const wasTTSEnabled = TTS_CONFIG.enabled;
       TTS_CONFIG.enabled = false;
       _assistActive = true;
