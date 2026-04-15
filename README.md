@@ -101,15 +101,17 @@ Your avatar is a conversational AI companion. It has personality, memory, emotio
 
 ### Code Assist Mode (⚡ toggle)
 
-Messages relay directly to Claude Code. The avatar becomes a transparent pipe:
+Messages relay to Claude Code asynchronously — **no timeout**. The avatar confirms delivery immediately, then results arrive when Claude Code finishes:
 
 | Action | Behavior |
 |--------|----------|
-| Your message | Sent to Claude Code |
-| Progress update | Avatar speaks it |
+| Your message | Sent to Claude Code → avatar says "I've sent your request to Claude!" |
+| Progress update | Avatar speaks it (real-time) |
 | Final result | Avatar speaks TTS-friendly text + Code Panel shows raw data |
 | Direct push | Claude Code can push results without avatar request |
 | Ask avatar's opinion | Avatar responds with context |
+
+> **Fire-and-forget**: No more timeout failures on long-running tasks. The server confirms POST delivery and returns immediately. Results arrive via async push — Claude Code takes as long as it needs.
 
 **Opinion detection** works in 4 languages — ask your avatar what it thinks about the result:
 - 🇰🇷 "어떻게 생각해?" · 🇺🇸 "What do you think?" · 🇯🇵 "どう思う?" · 🇨🇳 "你觉得怎么样?"
