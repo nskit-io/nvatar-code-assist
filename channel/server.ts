@@ -236,7 +236,7 @@ async function registerWithServer() {
     })
     if (res.ok) {
       process.stderr.write(`nvatar channel: registered (port ${CHANNEL_PORT}, uuid ${CHANNEL_UUID})\n`)
-      process.stderr.write(`\n  ⚡ Code Assist URL:\n  ${NVATAR_SERVER}/static/code-assist.html?channel=${CHANNEL_UUID}\n\n`)
+      process.stderr.write(`\n  ⚡ Code Assist URL:\n  ${NVATAR_SERVER}/res/code-assist.html?channel=${CHANNEL_UUID}\n\n`)
     } else {
       process.stderr.write(`nvatar channel: registration failed: ${res.status}\n`)
     }

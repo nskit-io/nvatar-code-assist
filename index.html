@@ -242,8 +242,15 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
 const DEFAULT_SERVER = 'https://nvatar.nskit.io';
+const DEFAULT_RES_SERVER = 'https://nvatar-res.nskit.io';
 function getServer() {
   return (document.getElementById('serverURL')?.value?.trim().replace(/\/$/, '')) || DEFAULT_SERVER;
+}
+function getResServer() {
+  // Resource server for VRM, FBX, room, assets
+  const server = getServer();
+  if (server === DEFAULT_SERVER) return DEFAULT_RES_SERVER;
+  return server; // local dev or custom server: same origin
 }
 let _useStaticModels = false;  // true when using local models.json fallback
 
@@ -273,10 +280,11 @@ function switchTab(tab) {
 // --- VRM models ---
 async function loadVRMModels() {
   const server = getServer();
+  const resServer = getResServer();
   const statusEl = document.getElementById('serverStatus');
   try {
-    // Try API server first
-    const r = await fetch(`${server}/api/v1/vrm/models`, { signal: AbortSignal.timeout(5000) });
+    // Try resource server first
+    const r = await fetch(`${resServer}/api/v1/vrm/models`, { signal: AbortSignal.timeout(5000) });
     const d = await r.json();
     allModels = d.models || [];
     _useStaticModels = false;
@@ -325,8 +333,8 @@ function renderVRMGrid() {
     const isSelected = selectedVRM && selectedVRM.id === m.id;
     const emoji = getGenderEmoji(m.tags);
     const badge = m.source === 'booth' ? 'BOOTH' : 'VRoid';
-    // Static models have relative thumbnail paths, API models have /static/... paths
-    const thumbSrc = m.thumbnail ? (_useStaticModels ? m.thumbnail : `${getServer()}${m.thumbnail}`) : null;
+    // Static models have relative thumbnail paths, API models have /res/... paths
+    const thumbSrc = m.thumbnail ? (_useStaticModels ? m.thumbnail : `${getResServer()}${m.thumbnail}`) : null;
     const thumb = thumbSrc ? `<img class="vrm-thumb" src="${thumbSrc}" alt="${m.name}">` : `<span class="emoji">${emoji}</span>`;
     return `<div class="vrm-option${isSelected ? ' selected' : ''}" onclick="selectVRMModel('${m.id}')">
       <span class="vrm-badge">${badge}</span>
@@ -343,7 +351,7 @@ function selectVRMModel(id) {
   if (!model) return;
   selectedVRM = model;
   renderVRMGrid();
-  loadPreviewVRM(getServer() + model.url);
+  loadPreviewVRM(getResServer() + model.url);
 }
 
 // --- Load existing ---
@@ -367,7 +375,7 @@ async function loadAvatars() {
       const vrmUrl = saved.vrm_url || '';
       const vrmName = saved.vrm_name || 'Default';
       const thumbUrl = saved.vrm_thumbnail || '';
-      const thumbSrc = thumbUrl ? (thumbUrl.startsWith('http') ? thumbUrl : `${server}${thumbUrl}`) : '';
+      const thumbSrc = thumbUrl ? (thumbUrl.startsWith('http') ? thumbUrl : `${getResServer()}${thumbUrl}`) : '';
       const el = document.createElement('div');
       el.className = 'avatar-item';
       el.innerHTML = `
@@ -412,7 +420,7 @@ async function createAndEnter() {
   const d = await r.json();
   if (d.response) {
     const avatarId = d.response.id;
-    const vrmUrl = server + selectedVRM.url;
+    const vrmUrl = getResServer() + selectedVRM.url;
     localStorage.setItem('nvatar_' + avatarId, JSON.stringify({
       vrm_id: selectedVRM.id,
       vrm_url: vrmUrl,
@@ -426,7 +434,7 @@ async function createAndEnter() {
 // --- Enter Room ---
 function enterRoom(avatarId, vrmUrl) {
   const server = getServer();
-  const url = vrmUrl || (selectedVRM ? server + selectedVRM.url : '');
+  const url = vrmUrl || (selectedVRM ? getResServer() + selectedVRM.url : '');
   if (!url) {
     alert('VRM model not selected');
     return;
@@ -592,7 +600,7 @@ function initPreview() {
 }
 
 function applyIdlePose(vrm, model) {
-  loadMixamoForPreview(`${getServer()}/static/fbx/mixamo/Idle_Default.fbx`, vrm, model);
+  loadMixamoForPreview(`${getResServer()}/res/fbx/mixamo/Idle_Default.fbx`, vrm, model);
 }
 
 async function loadPreviewVRM(url) {
@@ -626,7 +634,7 @@ window.switchTab = function(tab) {
   document.getElementById('tabCreate').style.display = tab === 'create' ? 'block' : 'none';
   if (tab === 'create') {
     requestAnimationFrame(() => setTimeout(() => {
-      if (!pRenderer && selectedVRM) loadPreviewVRM(getServer() + selectedVRM.url);
+      if (!pRenderer && selectedVRM) loadPreviewVRM(getResServer() + selectedVRM.url);
     }, 200));
   }
 };
@@ -636,7 +644,7 @@ window.selectVRMModel = function(id) {
   if (!model) return;
   selectedVRM = model;
   renderVRMGrid();
-  loadPreviewVRM(getServer() + model.url);
+  loadPreviewVRM(getResServer() + model.url);
 };
 
 window.filterVRM = function(filter) {
