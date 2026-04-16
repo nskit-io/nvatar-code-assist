@@ -1,6 +1,7 @@
 [
   {
     "id": "booth/Neku_Shiro",
+    "uid": "09b229eb",
     "name": "Neku",
     "name_ja": "ネク",
     "source": "booth",
@@ -16,6 +17,7 @@
   },
   {
     "id": "booth/SaekiToshimasa-v1",
+    "uid": "f66876fc",
     "name": "Toshi",
     "name_ja": "俊正",
     "source": "booth",
@@ -32,6 +34,7 @@
   },
   {
     "id": "booth/j_Kokuyou",
+    "uid": "75c0b569",
     "name": "Kokuyou",
     "name_ja": "黒曜",
     "source": "booth",
@@ -47,6 +50,7 @@
   },
   {
     "id": "booth/keito",
+    "uid": "6def1f93",
     "name": "Keito",
     "name_ja": "けいと",
     "source": "booth",
@@ -62,6 +66,7 @@
   },
   {
     "id": "booth/nasha",
+    "uid": "5d2459c6",
     "name": "Nasha",
     "name_ja": "ナーシャ",
     "source": "booth",
@@ -77,6 +82,7 @@
   },
   {
     "id": "booth/ライ",
+    "uid": "931d28cc",
     "name": "Rai",
     "name_ja": "ライ",
     "source": "booth",
@@ -93,6 +99,7 @@
   },
   {
     "id": "booth/悪魔風フルコーデセット",
+    "uid": "32ebadd5",
     "name": "Demon",
     "name_ja": "悪魔",
     "source": "booth",
@@ -110,6 +117,7 @@
   },
   {
     "id": "booth/楠木有紗",
+    "uid": "d15e8545",
     "name": "Arisa",
     "name_ja": "有紗",
     "source": "booth",
@@ -125,6 +133,7 @@
   },
   {
     "id": "booth/水瀬ほむら",
+    "uid": "299790d0",
     "name": "Homura",
     "name_ja": "ほむら",
     "source": "booth",
@@ -140,6 +149,7 @@
   },
   {
     "id": "booth/火威フラム",
+    "uid": "4bba87fc",
     "name": "Flamme",
     "name_ja": "フラム",
     "source": "booth",
@@ -155,6 +165,7 @@
   },
   {
     "id": "booth/縦ロール",
+    "uid": "b828d7af",
     "name": "Lina",
     "name_ja": "リナ",
     "source": "booth",
@@ -170,6 +181,7 @@
   },
   {
     "id": "booth/葛野歩守",
+    "uid": "19ad0d71",
     "name": "Ayumi",
     "name_ja": "歩守",
     "source": "booth",
@@ -185,6 +197,7 @@
   },
   {
     "id": "vroid/AvatarSample_A",
+    "uid": "ced2d73e",
     "name": "Sample A",
     "name_ja": "",
     "source": "vroid-samples",
@@ -199,6 +212,7 @@
   },
   {
     "id": "vroid/AvatarSample_B",
+    "uid": "d7f7e439",
     "name": "Sample B",
     "name_ja": "",
     "source": "vroid-samples",
@@ -213,6 +227,7 @@
   },
   {
     "id": "vroid/AvatarSample_C",
+    "uid": "fbc0c343",
     "name": "Sample C",
     "name_ja": "",
     "source": "vroid-samples",
@@ -226,21 +241,8 @@
     "thumbnail": "vrm/thumbnails/AvatarSample_C.jpg"
   },
   {
-    "id": "vroid/Avatar_Orion",
-    "name": "Orion",
-    "name_ja": "",
-    "source": "vroid-samples",
-    "creator": "VRoid Project",
-    "tags": [
-      "Male",
-      "VRoid"
-    ],
-    "verified": true,
-    "url": "/res/vrm/vroid-samples/Avatar_Orion.vrm",
-    "thumbnail": "vrm/thumbnails/Avatar_Orion.jpg"
-  },
-  {
     "id": "vroid/Darkness_Shibu",
+    "uid": "b86784fe",
     "name": "Darkness Shibu",
     "name_ja": "",
     "source": "vroid-samples",
@@ -255,6 +257,7 @@
   },
   {
     "id": "vroid/Sakurada_Fumiriya",
+    "uid": "4d105559",
     "name": "Fumiriya",
     "name_ja": "",
     "source": "vroid-samples",
@@ -269,6 +272,7 @@
   },
   {
     "id": "vroid/Seed-san",
+    "uid": "c64b0d3d",
     "name": "Seed-san",
     "name_ja": "",
     "source": "vroid-samples",
@@ -283,6 +287,7 @@
   },
   {
     "id": "vroid/Sendagaya_Shibu",
+    "uid": "aa39d98a",
     "name": "Shibu",
     "name_ja": "",
     "source": "vroid-samples",
@@ -297,6 +302,7 @@
   },
   {
     "id": "vroid/Sendagaya_Shino",
+    "uid": "b311d767",
     "name": "Shino",
     "name_ja": "",
     "source": "vroid-samples",
@@ -311,6 +317,7 @@
   },
   {
     "id": "vroid/Victoria_Rubin",
+    "uid": "55cc30be",
     "name": "Victoria",
     "name_ja": "",
     "source": "vroid-samples",
@@ -325,6 +332,7 @@
   },
   {
     "id": "vroid/Vita",
+    "uid": "7e3f131b",
     "name": "Vita",
     "name_ja": "",
     "source": "vroid-samples",
@@ -339,6 +347,7 @@
   },
   {
     "id": "vroid/Vivi",
+    "uid": "6494530d",
     "name": "Vivi",
     "name_ja": "",
     "source": "vroid-samples",
@@ -353,6 +362,7 @@
   },
   {
     "id": "vroid/fem_vroid",
+    "uid": "e3f94b36",
     "name": "Fem VRoid",
     "name_ja": "",
     "source": "vroid-samples",
@@ -367,6 +377,7 @@
   },
   {
     "id": "vroid/masc_vroid",
+    "uid": "f4136b17",
     "name": "Masc VRoid",
     "name_ja": "",
     "source": "vroid-samples",

@@ -256,7 +256,7 @@ let _useStaticModels = false;  // true when using local models.json fallback
 
 // VRM models loaded from API
 let allModels = [];
-let selectedVRM = null;  // model object { id, name, url, ... }
+let selectedVRM = null;  // model object { uid, name, ... }
 let currentFilter = 'all';
 
 function getUserId() {
@@ -330,13 +330,14 @@ function renderVRMGrid() {
   }
 
   grid.innerHTML = filtered.map(m => {
-    const isSelected = selectedVRM && selectedVRM.id === m.id;
+    const modelKey = m.uid || m.id;
+    const isSelected = selectedVRM && (selectedVRM.uid || selectedVRM.id) === modelKey;
     const emoji = getGenderEmoji(m.tags);
     const badge = m.source === 'booth' ? 'BOOTH' : 'VRoid';
     // Static models have relative thumbnail paths, API models have /res/... paths
     const thumbSrc = m.thumbnail ? (_useStaticModels ? m.thumbnail : `${getResServer()}${m.thumbnail}`) : null;
     const thumb = thumbSrc ? `<img class="vrm-thumb" src="${thumbSrc}" alt="${m.name}">` : `<span class="emoji">${emoji}</span>`;
-    return `<div class="vrm-option${isSelected ? ' selected' : ''}" onclick="selectVRMModel('${m.id}')">
+    return `<div class="vrm-option${isSelected ? ' selected' : ''}" onclick="selectVRMModel('${modelKey}')">
       <span class="vrm-badge">${badge}</span>
       ${thumb}
       <div class="vrm-name">${m.name}</div>
@@ -346,12 +347,35 @@ function renderVRMGrid() {
   }).join('');
 }
 
-function selectVRMModel(id) {
-  const model = allModels.find(m => m.id === id);
+async function resolveVRMUrl(model) {
+  const uidOrUrl = model.uid || model.url || '';
+  // Direct URL passthrough
+  if (uidOrUrl.startsWith('http') || uidOrUrl.startsWith('/')) return uidOrUrl;
+  if (!uidOrUrl) {
+    // Fallback: static models have url field
+    if (model.url) return (_useStaticModels ? '' : getResServer()) + model.url;
+    return null;
+  }
+  try {
+    const resp = await fetch(`${getResServer()}/api/v1/vrm/resolve/${encodeURIComponent(uidOrUrl)}`);
+    if (resp.ok) {
+      const data = await resp.json();
+      return getResServer() + data.model.url;
+    }
+  } catch (e) {
+    console.warn('[Lobby] VRM resolve failed:', e);
+  }
+  // Fallback: static models have url field
+  if (model.url) return (_useStaticModels ? '' : getResServer()) + model.url;
+  return null;
+}
+
+function selectVRMModel(key) {
+  const model = allModels.find(m => (m.uid || m.id) === key);
   if (!model) return;
   selectedVRM = model;
   renderVRMGrid();
-  loadPreviewVRM(getResServer() + model.url);
+  resolveVRMUrl(model).then(url => { if (url) loadPreviewVRM(url); });
 }
 
 // --- Load existing ---
@@ -372,7 +396,7 @@ async function loadAvatars() {
     container.innerHTML = '';
     list.forEach(a => {
       const saved = JSON.parse(localStorage.getItem('nvatar_' + a.id) || '{}');
-      const vrmUrl = saved.vrm_url || '';
+      const vrmUid = saved.vrm_uid || saved.vrm_slug || '';  // backward compat: fallback to vrm_slug
       const vrmName = saved.vrm_name || 'Default';
       const thumbUrl = saved.vrm_thumbnail || '';
       const thumbSrc = thumbUrl ? (thumbUrl.startsWith('http') ? thumbUrl : `${getResServer()}${thumbUrl}`) : '';
@@ -386,7 +410,7 @@ async function loadAvatars() {
         </div>
         <div class="arrow">\u2192</div>
       `;
-      el.onclick = () => enterRoom(a.id, vrmUrl);
+      el.onclick = () => enterRoom(a.id, vrmUid);
       container.appendChild(el);
     });
   } catch(e) {
@@ -420,27 +444,26 @@ async function createAndEnter() {
   const d = await r.json();
   if (d.response) {
     const avatarId = d.response.id;
-    const vrmUrl = getResServer() + selectedVRM.url;
+    const vrmUid = selectedVRM.uid || selectedVRM.id;
     localStorage.setItem('nvatar_' + avatarId, JSON.stringify({
-      vrm_id: selectedVRM.id,
-      vrm_url: vrmUrl,
+      vrm_uid: vrmUid,
       vrm_name: selectedVRM.name,
       vrm_thumbnail: selectedVRM.thumbnail || '',
     }));
-    enterRoom(avatarId, vrmUrl);
+    enterRoom(avatarId, vrmUid);
   }
 }
 
 // --- Enter Room ---
-function enterRoom(avatarId, vrmUrl) {
+function enterRoom(avatarId, vrmUid) {
   const server = getServer();
-  const url = vrmUrl || (selectedVRM ? getResServer() + selectedVRM.url : '');
-  if (!url) {
+  const uid = vrmUid || (selectedVRM ? (selectedVRM.uid || selectedVRM.id) : '');
+  if (!uid) {
     alert('VRM model not selected');
     return;
   }
   const channelUUID = document.getElementById('channelUUID')?.value || '';
-  window.location.href = `code-assist.html?avatar=${avatarId}&vrm=${encodeURIComponent(url)}&channel=${channelUUID}&server=${encodeURIComponent(server)}`;
+  window.location.href = `code-assist.html?avatar=${avatarId}&vrm=${encodeURIComponent(uid)}&channel=${channelUUID}&server=${encodeURIComponent(server)}`;
 }
 
 // --- 3D Preview ---
@@ -634,17 +657,17 @@ window.switchTab = function(tab) {
   document.getElementById('tabCreate').style.display = tab === 'create' ? 'block' : 'none';
   if (tab === 'create') {
     requestAnimationFrame(() => setTimeout(() => {
-      if (!pRenderer && selectedVRM) loadPreviewVRM(getResServer() + selectedVRM.url);
+      if (!pRenderer && selectedVRM) resolveVRMUrl(selectedVRM).then(url => { if (url) loadPreviewVRM(url); });
     }, 200));
   }
 };
 
-window.selectVRMModel = function(id) {
-  const model = allModels.find(m => m.id === id);
+window.selectVRMModel = function(key) {
+  const model = allModels.find(m => (m.uid || m.id) === key);
   if (!model) return;
   selectedVRM = model;
   renderVRMGrid();
-  loadPreviewVRM(getResServer() + model.url);
+  resolveVRMUrl(model).then(url => { if (url) loadPreviewVRM(url); });
 };
 
 window.filterVRM = function(filter) {
