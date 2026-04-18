@@ -443,7 +443,12 @@ function enterRoom(avatarUid, vrmUid) {
     alert('VRM model not selected');
     return;
   }
-  const channelUUID = document.getElementById('channelUUID')?.value || '';
+  const channelUUID = (document.getElementById('channelUUID')?.value || '').trim();
+  if (!channelUUID) {
+    alert('Channel UUID 가 필요합니다. Gen 버튼으로 생성하고 터미널에서 채널을 시작한 뒤 입장해주세요.');
+    document.getElementById('channelUUID')?.focus();
+    return;
+  }
   window.location.href = `code-assist.html?avatar=${avatarUid}&vrm=${encodeURIComponent(uid)}&channel=${channelUUID}`;
 }
 
