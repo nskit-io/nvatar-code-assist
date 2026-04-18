@@ -2,6 +2,8 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NVatar — Code Assist</title>
 <script type="importmap">
@@ -100,21 +102,12 @@ textarea { height: 70px; resize: vertical; }
     <p>AI 아바타와 함께하는 코드 비서</p>
   </div>
 
-  <!-- Server URL + Channel UUID -->
+  <!-- Channel UUID -->
   <div style="margin-bottom:16px;padding:14px 16px;background:#1e293b;border:1px solid #334155;border-radius:12px;">
-    <div style="display:flex;gap:16px;flex-wrap:wrap;">
-      <div style="flex:1;min-width:200px;">
-        <div style="font-size:12px;color:#94a3b8;margin-bottom:6px;">NVatar Server</div>
-        <input id="serverURL" value="" placeholder="https://nvatar.nskit.io" style="width:100%;padding:10px 14px;border:1px solid #334155;border-radius:8px;background:#0f172a;color:#a5b4fc;font-size:13px;font-family:monospace;outline:none;">
-        <div id="serverStatus" style="font-size:10px;color:#64748b;margin-top:4px;"></div>
-      </div>
-      <div style="flex:1;min-width:200px;">
-        <div style="font-size:12px;color:#94a3b8;margin-bottom:6px;">Channel UUID</div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <input id="channelUUID" value="" placeholder="채널 시작 후 UUID 입력" style="flex:1;padding:10px 14px;border:1px solid #334155;border-radius:8px;background:#0f172a;color:#a5b4fc;font-size:14px;font-family:monospace;outline:none;">
-          <button onclick="document.getElementById('channelUUID').value=crypto.randomUUID().slice(0,8);_updateCmd()" style="padding:10px 14px;border:1px solid #6366f1;border-radius:8px;background:rgba(99,102,241,0.15);color:#a5b4fc;font-size:12px;cursor:pointer;">Gen</button>
-        </div>
-      </div>
+    <div style="font-size:12px;color:#94a3b8;margin-bottom:6px;">Channel UUID</div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <input id="channelUUID" value="" placeholder="채널 시작 후 UUID 입력" style="flex:1;padding:10px 14px;border:1px solid #334155;border-radius:8px;background:#0f172a;color:#a5b4fc;font-size:14px;font-family:monospace;outline:none;">
+      <button onclick="document.getElementById('channelUUID').value=crypto.randomUUID().slice(0,8);_updateCmd()" style="padding:10px 14px;border:1px solid #6366f1;border-radius:8px;background:rgba(99,102,241,0.15);color:#a5b4fc;font-size:12px;cursor:pointer;">Gen</button>
     </div>
     <pre id="channelCmd" style="margin-top:8px;padding:8px 10px;background:#0a0f1a;border-radius:6px;font-size:11px;color:#64748b;overflow-x:auto;white-space:nowrap;">UUID를 생성하면 채널 시작 명령이 표시됩니다</pre>
     <script>
@@ -125,12 +118,6 @@ textarea { height: 70px; resize: vertical; }
       }
     }
     document.getElementById('channelUUID').addEventListener('input', _updateCmd);
-    // Persist server URL
-    const _savedServer = localStorage.getItem('nvatar_server_url');
-    if (_savedServer) document.getElementById('serverURL').value = _savedServer;
-    document.getElementById('serverURL').addEventListener('change', function() {
-      localStorage.setItem('nvatar_server_url', this.value.trim());
-    });
     </script>
   </div>
 
@@ -241,17 +228,11 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
-const DEFAULT_SERVER = 'https://nvatar.nskit.io';
-const DEFAULT_RES_SERVER = 'https://nvatar-res.nskit.io';
-function getServer() {
-  return (document.getElementById('serverURL')?.value?.trim().replace(/\/$/, '')) || DEFAULT_SERVER;
-}
-function getResServer() {
-  // Resource server for VRM, FBX, room, assets
-  const server = getServer();
-  if (server === DEFAULT_SERVER) return DEFAULT_RES_SERVER;
-  return server; // local dev or custom server: same origin
-}
+// Fixed server addresses — no user override (prevents external-redirection attacks).
+const SERVER = 'https://nvatar.nskit.io';
+const RES_SERVER = 'https://nvatar-res.nskit.io';
+function getServer() { return SERVER; }
+function getResServer() { return RES_SERVER; }
 let _useStaticModels = false;  // true when using local models.json fallback
 
 // VRM models loaded from API
@@ -410,7 +391,7 @@ async function loadAvatars() {
         </div>
         <div class="arrow">\u2192</div>
       `;
-      el.onclick = () => enterRoom(a.id, vrmUid);
+      el.onclick = () => enterRoom(a.uid, vrmUid);
       container.appendChild(el);
     });
   } catch(e) {
@@ -444,26 +425,26 @@ async function createAndEnter() {
   const d = await r.json();
   if (d.response) {
     const avatarId = d.response.id;
+    const avatarUid = d.response.uid;
     const vrmUid = selectedVRM.uid || selectedVRM.id;
     localStorage.setItem('nvatar_' + avatarId, JSON.stringify({
       vrm_uid: vrmUid,
       vrm_name: selectedVRM.name,
       vrm_thumbnail: selectedVRM.thumbnail || '',
     }));
-    enterRoom(avatarId, vrmUid);
+    enterRoom(avatarUid, vrmUid);
   }
 }
 
 // --- Enter Room ---
-function enterRoom(avatarId, vrmUid) {
-  const server = getServer();
+function enterRoom(avatarUid, vrmUid) {
   const uid = vrmUid || (selectedVRM ? (selectedVRM.uid || selectedVRM.id) : '');
   if (!uid) {
     alert('VRM model not selected');
     return;
   }
   const channelUUID = document.getElementById('channelUUID')?.value || '';
-  window.location.href = `code-assist.html?avatar=${avatarId}&vrm=${encodeURIComponent(uid)}&channel=${channelUUID}&server=${encodeURIComponent(server)}`;
+  window.location.href = `code-assist.html?avatar=${avatarUid}&vrm=${encodeURIComponent(uid)}&channel=${channelUUID}`;
 }
 
 // --- 3D Preview ---

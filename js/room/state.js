@@ -10,18 +10,11 @@
 // GitHub Pages: API→nvatar.nskit.io, RES→nvatar-res.nskit.io
 // Production:  same as GitHub Pages
 
-const _params = new URLSearchParams(location.search);
-const _serverParam = _params.get('server');
-const _savedServer = localStorage.getItem('nvatar_server_url');
+// Environment-based server URLs — no query-param override (prevents external redirection
+// attacks and avoids leaking server addresses in shareable URLs).
 const _isGitHubPages = location.hostname === 'nskit-io.github.io' || location.hostname.endsWith('.github.io');
-
-// Core API: chat, avatar, memory, tts, channel
-const _coreParam = _params.get('core') || _params.get('server');
-const API_BASE = _coreParam || _savedServer || (_isGitHubPages ? 'https://nvatar.nskit.io' : '');
-
-// Resource server: static, VRM, room, assets, layout
-const _resParam = _params.get('res');
-const RES_BASE = _resParam || (_isGitHubPages ? 'https://nvatar-res.nskit.io' : '');
+const API_BASE = _isGitHubPages ? 'https://nvatar.nskit.io' : '';
+const RES_BASE = _isGitHubPages ? 'https://nvatar-res.nskit.io' : '';
 
 const S = {
   API_BASE,
