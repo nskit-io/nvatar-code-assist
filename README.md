@@ -4,7 +4,11 @@
 
 NVatar Code Assist connects your [NVatar](https://github.com/nskit-io/nvatar-demo) avatar to a local [Claude Code](https://claude.ai/claude-code) session. Give code commands to your avatar, and Claude Code executes them on your machine.
 
-**[Live Demo](https://nskit-io.github.io/nvatar-code-assist/)** · [한국어](docs/README_KO.md) · [日本語](docs/README_JA.md) · [中文](docs/README_ZH.md)
+[Live Demo (temporarily offline)](https://nskit-io.github.io/nvatar-code-assist/) · [한국어](docs/README_KO.md) · [日本語](docs/README_JA.md) · [中文](docs/README_ZH.md)
+
+> **Note:** Live demo is temporarily offline while the demo server is under maintenance. You can still run it from source.
+>
+> **Security:** The NVatar server APIs this page talks to have no authentication layer of their own. If you self-host a server, put authentication in front of it and do not expose it directly to the public internet.
 
 ---
 
@@ -242,9 +246,9 @@ When a message fails to reach Claude Code after retries, the avatar displays a p
 
 | Service | Notes |
 |---------|-------|
-| **NVatar Server** (`nvatar.nskit.io`) | Hosted service. No local setup needed. |
-| **TTS (Voice)** | Shared API quota — may rate-limit during heavy use. Avatar falls back to text bubbles. |
-| **STT (Mic Input)** | Stable. Text input always available as fallback. |
+| **NVatar Server** | Hosted demo server is temporarily offline (maintenance). Self-hosted servers must have authentication in front of them. |
+| **TTS (Voice)** | Cloud TTS through the NVatar server. If TTS is unavailable, the avatar falls back to text bubbles. |
+| **STT (Mic Input)** | Requires your own STT endpoint: set `window.NVATAR_WHISPER_URL` (e.g. `https://your-stt.example.com/api/v1/transcribe`). Without it the mic is disabled; text input always works. |
 
 > For enterprise deployment with dedicated resources, [contact us](mailto:nskit@nskit.io).
 
@@ -304,7 +308,7 @@ NVatarSDK.clearLookupResults();
 
 ## License
 
-Apache-2.0
+CC BY-NC-SA 4.0 — see [LICENSE](LICENSE)
 
 ---
 

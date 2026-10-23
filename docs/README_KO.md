@@ -4,7 +4,7 @@
 
 NVatar Code Assist는 [NVatar](https://github.com/nskit-io/nvatar-demo) 아바타 룸을 로컬 [Claude Code](https://claude.ai/claude-code) 세션과 MCP 채널로 연결합니다. 아바타에게 코드 명령을 내리면, Claude Code가 여러분의 로컬 머신에서 실행합니다.
 
-**[Live Demo](https://nskit-io.github.io/nvatar-code-assist/)** · [English](../README.md) · [日本語](README_JA.md) · [中文](README_ZH.md)
+[Live Demo (일시 중단)](https://nskit-io.github.io/nvatar-code-assist/) · [English](../README.md) · [日本語](README_JA.md) · [中文](README_ZH.md)
 
 ---
 
@@ -63,7 +63,9 @@ Claude Code가 채널 서버를 자동으로 실행합니다. 채널은 NVatar �
 - [Claude Code](https://claude.ai/claude-code) v2.1.80 이상
 - [Bun](https://bun.sh/) 런타임
 
-> **안내:** NVatar 서버는 `https://nvatar.nskit.io`에서 호스팅됩니다. 로컬 셀프호스팅은 지원되지 않습니다. 자체 인프라에 NVatar를 도입하려면 [문의해 주세요](mailto:nskit@nskit.io).
+> **안내:** 데모 서버 점검으로 라이브 데모가 일시 중단되었습니다. 소스에서 직접 실행할 수는 있습니다.
+>
+> **보안:** 이 페이지가 호출하는 NVatar 서버 API 에는 자체 인증 계층이 없습니다. 서버를 직접 운영한다면 앞단에 인증을 두고, 공개 인터넷에 그대로 노출하지 마세요. 자체 인프라 도입 문의는 [여기로](mailto:nskit@nskit.io).
 
 ### Step 1: 클론 및 설치
 
@@ -277,7 +279,7 @@ nvatar-code-assist/
 │   ├── scene.js            # Three.js 3D 씬
 │   ├── animation.js        # Mixamo VRM 애니메이션
 │   ├── i18n.js             # 4개 언어 UI 번역
-│   ├── tts.js / stt.js     # 음성 (ElevenLabs TTS, Whisper STT)
+│   ├── tts.js / stt.js     # 음성 (클라우드 TTS, Whisper STT)
 │   └── ...                 # mood, roaming, bubble, mobile, walk
 ├── vrm/
 │   ├── models.json         # 정적 모델 목록 (오프라인 폴백)
@@ -308,11 +310,11 @@ Code Assist는 여러 계층의 재시도 및 오류 처리를 포함합니다:
 
 | 서비스 | 엔드포인트 | 비고 |
 |--------|-----------|------|
-| **NVatar 서버** | `nvatar.nskit.io` | 공개 호스팅 서버. 셀프호스팅 불가. |
-| **TTS (음성)** | ElevenLabs via `nvatar.nskit.io` | API 쿼터로 인한 속도 제한 가능. TTS 불가 시 텍스트 말풍선으로 정상 동작. |
-| **STT (음성 인식)** | `whisper.nskit.io` (로컬 Whisper) | 자체 호스팅으로 안정적. 장애 시 텍스트 입력 사용. |
+| **NVatar 서버** | NVatar 서버 URL | 공개 데모 서버는 점검으로 일시 중단. 직접 운영하는 서버는 앞단에 인증이 필요합니다. |
+| **TTS (음성)** | NVatar 서버 경유 클라우드 TTS | TTS 불가 시 텍스트 말풍선으로 정상 동작. |
+| **STT (음성 인식)** | 직접 준비한 STT 엔드포인트 | `window.NVATAR_WHISPER_URL` 로 지정 (예: `https://your-stt.example.com/api/v1/transcribe`). 미지정 시 마이크 비활성, 텍스트 입력은 항상 가능. |
 
-- TTS는 공유 ElevenLabs API 쿼터를 사용합니다. 사용량이 많을 때 음성 출력이 일시 중단될 수 있습니다. 채팅과 코드 relay에는 영향 없이 텍스트 말풍선으로 계속 동작합니다.
+- TTS 를 쓸 수 없을 때도 채팅과 코드 relay 는 텍스트 말풍선으로 계속 동작합니다.
 - 전용 리소스가 필요한 기업 도입은 [문의해 주세요](mailto:nskit@nskit.io).
 
 ## 문제 해결
@@ -331,7 +333,7 @@ Code Assist는 여러 계층의 재시도 및 오류 처리를 포함합니다:
 
 ## 라이선스
 
-Apache-2.0
+CC BY-NC-SA 4.0 — [LICENSE](../LICENSE) 참조
 
 ---
 

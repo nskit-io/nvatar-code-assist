@@ -4,7 +4,7 @@
 
 NVatar Code Assist通过MCP通道，将[NVatar](https://github.com/nskit-io/nvatar-demo)虚拟形象房间与本地[Claude Code](https://claude.ai/claude-code)会话连接起来。向虚拟形象下达代码指令，Claude Code便会在您的本地机器上执行。
 
-**[Live Demo](https://nskit-io.github.io/nvatar-code-assist/)** · [English](../README.md) · [한국어](README_KO.md) · [日本語](README_JA.md)
+[Live Demo（暂时下线）](https://nskit-io.github.io/nvatar-code-assist/) · [English](../README.md) · [한국어](README_KO.md) · [日本語](README_JA.md)
 
 ---
 
@@ -63,8 +63,9 @@ Claude Code会自动启动频道服务器。频道通过HTTP向NVatar服务器�
 - [Claude Code](https://claude.ai/claude-code) v2.1.80及以上版本
 - [Bun](https://bun.sh/) 运行时
 
-> **说明:** NVatar服务器托管在`https://nvatar.nskit.io`。不支持本地自建部署。如需在自有基础设施上部署NVatar，请[联系我们](mailto:nskit@nskit.io)。
-- NVatar Server访问权限（`https://nvatar.nskit.io` 或自建服务器）
+> **说明:** 演示服务器维护中，在线演示暂时下线。仍可从源码运行。
+>
+> **安全:** 本页面调用的NVatar服务器API本身没有认证层。如自行运营服务器，请在前端加上认证，且不要直接暴露在公网上。自有基础设施部署请[联系我们](mailto:nskit@nskit.io)。
 
 ### Step 1: 克隆与安装
 
@@ -278,7 +279,7 @@ nvatar-code-assist/
 │   ├── scene.js            # Three.js 3D场景
 │   ├── animation.js        # Mixamo VRM动画
 │   ├── i18n.js             # 4语言UI翻译
-│   ├── tts.js / stt.js     # 语音（ElevenLabs TTS, Whisper STT）
+│   ├── tts.js / stt.js     # 语音（云端TTS, Whisper STT）
 │   └── ...                 # mood, roaming, bubble, mobile, walk
 ├── vrm/
 │   ├── models.json         # 静态模型列表（离线回退）
@@ -309,11 +310,11 @@ Code Assist内置了多层重试与错误处理机制:
 
 | 服务 | 端点 | 说明 |
 |------|------|------|
-| **NVatar服务器** | `nvatar.nskit.io` | 公共托管服务器。不支持自建部署。 |
-| **TTS（语音）** | ElevenLabs via `nvatar.nskit.io` | 可能因API配额限流。TTS不可用时，虚拟形象通过文字气泡正常工作。 |
-| **STT（语音识别）** | `whisper.nskit.io`（本地Whisper） | 自托管，运行稳定。故障时请使用文字输入。 |
+| **NVatar服务器** | NVatar服务器URL | 公共演示服务器维护中，暂时下线。自行运营的服务器需在前端加认证。 |
+| **TTS（语音）** | 经由NVatar服务器的云端TTS | TTS不可用时，虚拟形象通过文字气泡正常工作。 |
+| **STT（语音识别）** | 自备的STT端点 | 通过 `window.NVATAR_WHISPER_URL` 指定（例: `https://your-stt.example.com/api/v1/transcribe`）。未指定时麦克风禁用，文字输入始终可用。 |
 
-- TTS使用共享的ElevenLabs API配额。高峰期语音输出可能暂时中断，但聊天和代码中继通过文字气泡正常运作。
+- TTS不可用时，聊天和代码中继仍通过文字气泡正常运作。
 - 如需专用资源的企业部署，请[联系我们](mailto:nskit@nskit.io)。
 
 ## 故障排查
@@ -332,7 +333,7 @@ Code Assist内置了多层重试与错误处理机制:
 
 ## 许可证
 
-Apache-2.0
+CC BY-NC-SA 4.0 — 参见 [LICENSE](../LICENSE)
 
 ---
 

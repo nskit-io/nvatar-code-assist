@@ -4,7 +4,7 @@
 
 NVatar Code Assistは、[NVatar](https://github.com/nskit-io/nvatar-demo)のアバタールームをローカルの[Claude Code](https://claude.ai/claude-code)セッションとMCPチャネルで接続します。アバターにコード指示を出すと、Claude Codeがお使いのマシン上で実行します。
 
-**[Live Demo](https://nskit-io.github.io/nvatar-code-assist/)** · [English](../README.md) · [한국어](README_KO.md) · [中文](README_ZH.md)
+[Live Demo（一時停止中）](https://nskit-io.github.io/nvatar-code-assist/) · [English](../README.md) · [한국어](README_KO.md) · [中文](README_ZH.md)
 
 ---
 
@@ -63,8 +63,9 @@ Claude Codeがチャンネルサーバーを自動的に起動します。チャ
 - [Claude Code](https://claude.ai/claude-code) v2.1.80以上
 - [Bun](https://bun.sh/) ランタイム
 
-> **ご案内:** NVatarサーバーは`https://nvatar.nskit.io`でホスティングされています。ローカルセルフホスティングはサポートされていません。自社インフラへの導入をご検討の場合は[お問い合わせください](mailto:nskit@nskit.io)。
-- NVatar Serverへのアクセス (`https://nvatar.nskit.io` またはセルフホスト)
+> **お知らせ:** デモサーバーのメンテナンスのため、ライブデモは一時停止中です。ソースから実行することは引き続き可能です。
+>
+> **セキュリティ:** このページが呼び出すNVatarサーバーAPIには独自の認証レイヤーがありません。サーバーを自前で運用する場合は前段に認証を置き、公開インターネットに直接公開しないでください。自社インフラへの導入は[お問い合わせください](mailto:nskit@nskit.io)。
 
 ### Step 1: クローンとインストール
 
@@ -278,7 +279,7 @@ nvatar-code-assist/
 │   ├── scene.js            # Three.js 3Dシーン
 │   ├── animation.js        # Mixamo VRMアニメーション
 │   ├── i18n.js             # 4言語UI翻訳
-│   ├── tts.js / stt.js     # 音声（ElevenLabs TTS, Whisper STT）
+│   ├── tts.js / stt.js     # 音声（クラウドTTS, Whisper STT）
 │   └── ...                 # mood, roaming, bubble, mobile, walk
 ├── vrm/
 │   ├── models.json         # 静的モデルリスト（オフラインフォールバック）
@@ -309,11 +310,11 @@ Code Assistには複数層のリトライとエラーハンドリングが組み
 
 | サービス | エンドポイント | 備考 |
 |---------|--------------|------|
-| **NVatarサーバー** | `nvatar.nskit.io` | 公開ホスティングサーバー。セルフホスティング不可。 |
-| **TTS（音声）** | ElevenLabs via `nvatar.nskit.io` | APIクォータによるレート制限の可能性あり。TTS不可時はテキスト吹き出しで正常動作。 |
-| **STT（音声認識）** | `whisper.nskit.io`（ローカルWhisper） | 自社ホスティングで安定稼働。障害時はテキスト入力をご利用ください。 |
+| **NVatarサーバー** | NVatarサーバーURL | 公開デモサーバーはメンテナンスのため一時停止中。自前で運用するサーバーは前段に認証が必要です。 |
+| **TTS（音声）** | NVatarサーバー経由のクラウドTTS | TTS不可時はテキスト吹き出しで正常動作。 |
+| **STT（音声認識）** | 自前で用意するSTTエンドポイント | `window.NVATAR_WHISPER_URL` で指定（例: `https://your-stt.example.com/api/v1/transcribe`）。未指定時はマイク無効、テキスト入力は常に利用可能。 |
 
-- TTSは共有ElevenLabs APIクォータを使用しています。利用が集中するとTTS一時停止の可能性がありますが、チャットとコードリレーはテキスト吹き出しで正常に動作します。
+- TTSが使えない場合も、チャットとコードリレーはテキスト吹き出しで正常に動作します。
 - 専用リソースが必要な企業導入は[お問い合わせください](mailto:nskit@nskit.io)。
 
 ## トラブルシューティング
@@ -332,7 +333,7 @@ Code Assistには複数層のリトライとエラーハンドリングが組み
 
 ## ライセンス
 
-Apache-2.0
+CC BY-NC-SA 4.0 — [LICENSE](../LICENSE) を参照
 
 ---
 

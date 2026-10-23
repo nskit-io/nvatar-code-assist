@@ -38,7 +38,12 @@ const CHANNEL_SECRET = process.env.NVATAR_CHANNEL_SECRET || (() => {
   return generated
 })()
 const CHANNEL_PORT = parseInt(process.env.NVATAR_CHANNEL_PORT || '8789', 10)
-const NVATAR_SERVER = process.env.NVATAR_SERVER_URL || 'http://localhost:54444'
+// Required: your NVatar server URL (e.g. https://your-nvatar-server.example.com).
+// There is no public hosted default; put authentication in front of any server you run.
+const NVATAR_SERVER = process.env.NVATAR_SERVER_URL || 'https://your-nvatar-server.example.com'
+if (!process.env.NVATAR_SERVER_URL) {
+  process.stderr.write('nvatar channel: WARNING — NVATAR_SERVER_URL not set; using placeholder, registration will fail\n')
+}
 // UUID: passed via env (from user's index page) or auto-generated
 const CHANNEL_UUID = process.env.NVATAR_CHANNEL_UUID || randomBytes(4).toString('hex')
 
