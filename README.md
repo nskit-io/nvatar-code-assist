@@ -8,7 +8,7 @@ NVatar Code Assist connects your [NVatar](https://github.com/nskit-io/nvatar-dem
 
 > **Note:** Live demo is temporarily offline while the demo server is under maintenance. You can still run it from source.
 >
-> **Security:** The NVatar server APIs this page talks to have no authentication layer of their own. If you self-host a server, put authentication in front of it and do not expose it directly to the public internet.
+> **Security:** The hosted page is a **demo, not a production endpoint**. The NVatar server APIs it talks to have no user authentication and no avatar-ownership checks of their own. If you self-host, you must add authentication and server-side ownership checks yourself, and must not expose the server directly to the public internet. See [Security & Configuration](#security--configuration).
 
 ---
 
@@ -66,13 +66,15 @@ flowchart LR
 
 ### Step 3: Start Claude Code Channel
 
-Paste the copied command in your terminal:
+Paste the copied command in your terminal, adding the address of the NVatar server you use (the lobby shows only the UUID part):
 
 ```bash
-NVATAR_CHANNEL_UUID=<your-uuid> claude --dangerously-load-development-channels server:nvatar
+NVATAR_SERVER_URL=https://your-nvatar-server.example.com \
+NVATAR_CHANNEL_UUID=<your-uuid> \
+claude --dangerously-load-development-channels server:nvatar
 ```
 
-> **Important:** Start the channel BEFORE entering the room.
+> **Important:** Start the channel BEFORE entering the room. Without `NVATAR_SERVER_URL` the channel cannot register (there is no default server). See [Channel configuration](#channel-configuration).
 
 ### Step 4: Enter Room & Toggle Assist
 
@@ -186,7 +188,7 @@ graph TB
         CP[Code Panel]
     end
 
-    subgraph NVatar Cloud
+    subgraph NVatar Server
         WS[WebSocket]
         GM[Gemma AI]
         SDK[Assist Router]
@@ -211,6 +213,8 @@ graph TB
     SDK --> CP
 ```
 
+The channel's HTTP listener binds to `127.0.0.1:8789`, so the NVatar server must be able to reach that address (run it on the same machine, or reach it through a tunnel you control).
+
 ## Claude Code Channel
 
 This project uses **Claude Code Channels** — an MCP-based plugin system that lets external apps communicate with Claude Code.
@@ -223,7 +227,7 @@ flowchart LR
     B -->|result| A
 ```
 
-The `channel/` directory contains the ready-to-use MCP server. Claude Code launches it automatically when you run the start command. No additional configuration needed.
+The `channel/` directory contains the ready-to-use MCP server. Claude Code launches it automatically when you run the start command; the settings it reads are listed under [Channel configuration](#channel-configuration).
 
 The channel server includes automatic retry (3 attempts, 2s intervals) for MCP notification delivery, ensuring messages reach Claude Code even during brief connection instability.
 
@@ -242,11 +246,51 @@ Code Assist includes multiple layers of retry and error handling:
 
 When a message fails to reach Claude Code after retries, the avatar displays a plain error message instead of routing to the local AI (Gemma). This prevents confusing responses where the avatar "makes up" an answer to a code command.
 
+## Security & Configuration
+
+### Hosted demo vs. your own server
+
+- The copy on GitHub Pages is wired to the project's demo server (`nvatar.nskit.io`, currently offline). It is a **demo only — not a production endpoint**. Do not send sensitive code or data through it.
+- There is no server-URL override in the page (no `server` URL parameter). The lobby (`index.html`) is hard-wired to the demo server (`SERVER` / `RES_SERVER` constants); the room modules (`js/room/state.js`) use the demo server on `*.github.io` and their own origin elsewhere. To use your own NVatar server, serve these files from it and change the two constants in `index.html`.
+- The NVatar server APIs have **no user authentication** and **no avatar-ownership check** of their own. Integrators must put authentication in front of every endpoint and verify on the server that the caller owns the avatar (`avatar` uid) and channel UUID they address.
+
+### Channel configuration
+
+The channel reads these environment variables (or lines in `~/.claude/channels/nvatar/.env`):
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `NVATAR_CHANNEL_UUID` | random | Must match the UUID generated in the lobby |
+| `NVATAR_SERVER_URL` | none (placeholder) | Required. Your NVatar server; registration fails without it |
+| `NVATAR_CHANNEL_SECRET` | random per start | Shared secret for the server-channel link. Set a fixed value to avoid a new secret on every restart |
+| `NVATAR_CHANNEL_PORT` | `8789` | Local HTTP port (bound to `127.0.0.1`) |
+| `NVATAR_STATE_DIR` | `~/.claude/channels/nvatar` | Where the `.env` file is read from |
+
+### How the channel link is authenticated
+
+1. At startup the channel registers with the NVatar server (`/api/v1/channel/register`), sending its channel secret (`X-Channel-Token` header and request body). It re-registers every 30 seconds as a heartbeat.
+2. When the server relays a message to the channel (`POST /message` on `127.0.0.1:8789`), it must include that secret in the `token` field. A mismatch is rejected with **401**.
+3. Callbacks from the channel to the server (`/api/v1/channel/callback`) carry the same `X-Channel-Token` header.
+
+This secret only protects the server-channel link. It does **not** authenticate browser users and does not prove avatar ownership — that is the integrator's job (see above).
+
+### CORS (only if the page and server are on different origins)
+
+Served from your own server, the page is same-origin and needs no CORS. If you change the client to call a server on another origin, allow only your own origin(s) explicitly — never `*`:
+
+```python
+# FastAPI
+app.add_middleware(CORSMiddleware,
+    allow_origins=["https://your-username.github.io"],  # explicit allowlist, never "*"
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "Authorization"])
+```
+
 ## Service & Limits
 
 | Service | Notes |
 |---------|-------|
-| **NVatar Server** | Hosted demo server is temporarily offline (maintenance). Self-hosted servers must have authentication in front of them. |
+| **NVatar Server** | The hosted demo server is temporarily offline (maintenance); it is a demo, not a production endpoint. Self-hosted servers must have authentication and ownership checks in front of them. |
 | **TTS (Voice)** | Cloud TTS through the NVatar server. If TTS is unavailable, the avatar falls back to text bubbles. |
 | **STT (Mic Input)** | Requires your own STT endpoint: set `window.NVATAR_WHISPER_URL` (e.g. `https://your-stt.example.com/api/v1/transcribe`). Without it the mic is disabled; text input always works. |
 
@@ -256,11 +300,13 @@ When a message fails to reach Claude Code after retries, the avatar displays a p
 
 | Symptom | Fix |
 |---------|-----|
+| Delivery to the channel fails with 401 | The secret the server holds for this channel does not match the channel's current secret (e.g. the channel restarted with a new random secret before re-registering). Restart the channel (it re-registers at startup and every 30 s) and set a fixed `NVATAR_CHANNEL_SECRET` |
+| Channel log: "NVATAR_SERVER_URL not set" | Set `NVATAR_SERVER_URL` to your NVatar server and restart the channel |
 | Avatar doesn't relay commands | Click **⚡ Assist** to turn on Code Assist mode |
 | "서버 연결 대기 중" | Refresh the page — server may be loading |
 | Code panel empty after refresh | Make sure you're using the same Channel UUID |
 | TTS not working | Browser autoplay policy — interact with the page first |
-| Channel not connecting | Restart Claude Code with the same UUID |
+| Channel not connecting | Restart Claude Code with the same UUID and a valid `NVATAR_SERVER_URL` |
 | Avatar doesn't move to center when speaking | Fixed — `returnToCenter()` is now called on every bubble event |
 | Avatar speaks before TTS is ready | Fixed — `client_ready` handshake defers greeting until scene is loaded |
 | Message delivery failed silently | Server now retries 2x with 2s interval; shows error on final failure |

@@ -1,10 +1,14 @@
 # NVatar Code Assist
 
-> **3D AIアバターがコードアシスタントに -- Claude Codeで動作します。**
+> **3D AIアバターがコードアシスタントに -- Claude Code搭載。**
 
-NVatar Code Assistは、[NVatar](https://github.com/nskit-io/nvatar-demo)のアバタールームをローカルの[Claude Code](https://claude.ai/claude-code)セッションとMCPチャネルで接続します。アバターにコード指示を出すと、Claude Codeがお使いのマシン上で実行します。
+NVatar Code Assistは、[NVatar](https://github.com/nskit-io/nvatar-demo)のアバターをローカルの[Claude Code](https://claude.ai/claude-code)セッションと接続します。アバターにコードの指示を出すと、Claude Codeがあなたのマシン上で実行します。
 
 [Live Demo（一時停止中）](https://nskit-io.github.io/nvatar-code-assist/) · [English](../README.md) · [한국어](README_KO.md) · [中文](README_ZH.md)
+
+> **お知らせ:** デモサーバーのメンテナンスのため、ライブデモは一時停止中です。ソースからは引き続き実行できます。
+>
+> **セキュリティ:** ホストされたページは**デモであり、プロダクション用のエンドポイントではありません**。このページが呼び出す NVatar サーバー API には、独自のユーザー認証もアバター所有権の確認もありません。自前で運用する場合は、認証とサーバー側の所有権確認を自分で追加する必要があり、公開インターネットに直接さらしてはいけません。[セキュリティと設定](#セキュリティと設定)を参照。
 
 ---
 
@@ -13,59 +17,30 @@ NVatar Code Assistは、[NVatar](https://github.com/nskit-io/nvatar-demo)のア�
 ```mermaid
 sequenceDiagram
     participant U as You (Browser)
-    participant A as NVatar Room
+    participant A as Avatar Room
     participant S as NVatar Server
     participant C as Channel (Bun)
     participant CC as Claude Code
 
     U->>A: "Read CURRENT_WORK.md and summarize"
-    A->>S: WebSocket message
-    S->>C: HTTP POST /message
+    A->>S: WebSocket
+    S->>C: relay
     C->>CC: MCP notification
-    CC->>CC: Execute task (read files, etc.)
-    CC->>C: reply tool (progress)
-    C->>S: HTTP POST /callback
-    S->>A: bubble (progress speech)
-    A->>U: Avatar speaks: "Reading the file..."
-    CC->>C: reply tool (success)
-    C->>S: HTTP POST /callback
-    S->>A: bubble (final result)
-    A->>U: Avatar speaks full result + Code Panel
+    CC->>CC: Execute task
+    CC->>C: reply (progress)
+    C->>S: callback
+    S->>A: Avatar speaks: "Reading the file..."
+    CC->>C: reply (result)
+    C->>S: callback
+    S->>A: Avatar speaks result + Code Panel
 ```
-
-## Claude Code チャンネルとは
-
-NVatar Code Assistは**Claude Code Channel**を使用します。MCPベースのプラグインシステムで、外部アプリが実行中のClaude Codeセッションと通信できるようにします。
-
-```mermaid
-flowchart LR
-    A[Your App] -->|MCP stdio| B[Channel Server]
-    B -->|notification| C[Claude Code]
-    C -->|reply tool| B
-    B -->|callback| A
-```
-
-`channel/`ディレクトリにすぐ使えるBun MCPサーバーが含まれています。追加設定なしでインストール後すぐ実行できます:
-
-```bash
-cd channel && bun install          # 初回のみ
-NVATAR_CHANNEL_UUID=<uuid> claude --dangerously-load-development-channels server:nvatar
-```
-
-Claude Codeがチャンネルサーバーを自動的に起動します。チャンネルはNVatarサーバーにHTTPで登録され、メッセージを双方向に中継します。
-
-> Claude Code ChannelとMCPの詳細は[Claude Codeドキュメント](https://docs.anthropic.com/en/docs/claude-code)をご参照ください。
 
 ## クイックスタート
 
-### 前提条件
+### 必要なもの
 
 - [Claude Code](https://claude.ai/claude-code) v2.1.80以上
 - [Bun](https://bun.sh/) ランタイム
-
-> **お知らせ:** デモサーバーのメンテナンスのため、ライブデモは一時停止中です。ソースから実行することは引き続き可能です。
->
-> **セキュリティ:** このページが呼び出すNVatarサーバーAPIには独自の認証レイヤーがありません。サーバーを自前で運用する場合は前段に認証を置き、公開インターネットに直接公開しないでください。自社インフラへの導入は[お問い合わせください](mailto:nskit@nskit.io)。
 
 ### Step 1: クローンとインストール
 
@@ -81,32 +56,34 @@ bun install
 
 ```mermaid
 flowchart LR
-    A[Set Server URL] --> B[Generate Channel UUID]
-    B --> C[Copy channel command]
-    C --> D[Select Avatar]
-    D --> E[Enter Room]
+    A[Generate Channel UUID] --> B[Copy command]
+    B --> C[Select Avatar]
+    C --> D[Enter Room]
 ```
 
-1. **NVatar Server** URLを設定します（デフォルト: `https://nvatar.nskit.io`）
-2. **Gen** ボタンをクリックしてChannel UUIDを生成します
-3. UUIDの下に表示されるチャネル起動コマンドをコピーします
+1. **Gen** をクリックして Channel UUID を生成します
+2. 下に表示されるターミナルコマンドをコピーします
 
-### Step 3: Claude Codeチャネルを起動
+### Step 3: Claude Code チャンネルを開始
 
-コピーしたコマンドをターミナルで実行します:
+コピーしたコマンドに、使用する NVatar サーバーのアドレスを加えてターミナルで実行します(ロビーに表示されるのは UUID 部分のみです):
 
 ```bash
-NVATAR_CHANNEL_UUID=<your-uuid> claude --dangerously-load-development-channels server:nvatar
+NVATAR_SERVER_URL=https://your-nvatar-server.example.com \
+NVATAR_CHANNEL_UUID=<your-uuid> \
+claude --dangerously-load-development-channels server:nvatar
 ```
 
-> **重要:** ルームに入室する前にチャネルを起動してください。チャネルプロセスが実行中でなければ、コード指示は機能しません。
+> **重要:** ルームに入る前にチャンネルを開始してください。`NVATAR_SERVER_URL` がないとチャンネルは登録できません(デフォルトのサーバーはありません)。[チャンネル設定](#チャンネル設定)を参照。
 
-### Step 4: ルーム入室とAssist切り替え
+### Step 4: ルームに入って Assist を切り替え
 
-1. ロビーでアバターを選択し、ルームに入室します
-2. アバターと通常の会話をします（挨拶、名前の設定など）
-3. コード作業が必要になったら、ツールバーの **Assist** ボタンをクリックします
-4. コード指示を出すと、Claude Codeが実行します
+1. ロビーでアバターを選び、ルームに入ります
+2. まずはアバターと普通に会話します(挨拶、名前の設定など)
+3. コード作業の準備ができたら、ツールバーの **⚡ Assist** をクリックします
+4. コードの指示を出すと Claude Code が実行します
+
+## 2つのモード
 
 ```mermaid
 stateDiagram-v2
@@ -114,39 +91,112 @@ stateDiagram-v2
     NormalMode --> AssistMode: ⚡ Assist ON
     AssistMode --> NormalMode: ⚡ Assist OFF
 
-    NormalMode: 通常会話モード
-    NormalMode: アバターが性格を込めて応答
-    NormalMode: 会話は記憶に保存
+    NormalMode: Normal Mode
+    NormalMode: AI companion with personality
+    NormalMode: Conversations build memory & emotion
 
-    AssistMode: コードアシストモード
-    AssistMode: メッセージをClaude Codeにリレー
-    AssistMode: 結果はコードパネルに表示
-    AssistMode: 会話記憶は追跡しない
+    AssistMode: Code Assist Mode
+    AssistMode: Direct relay to Claude Code
+    AssistMode: Results in Code Panel
+    AssistMode: No memory tracking
 ```
 
+### 通常モード(デフォルト)
+
+アバターは対話型の AI コンパニオンです。性格・記憶・感情を持ち、TTS で話します。日常の会話は保存され、アバターは時間とともに進化します。
+
+### コードアシストモード(⚡ トグル)
+
+メッセージは Claude Code に非同期で中継されます — **タイムアウトなし**。アバターがすぐに受付を伝え、Claude Code が終わると結果が届きます:
+
+| 操作 | 動作 |
+|------|------|
+| あなたのメッセージ | Claude Code へ送信 → アバターが「Claudeにお願いしたよ!」と案内 |
+| 進捗の更新 | アバターがリアルタイムで話す |
+| 最終結果 | アバターが TTS 向けテキストを話し、Code Panel に生データを表示 |
+| ダイレクトプッシュ | Claude Code がアバターの依頼なしに結果を送信可能 |
+| アバターの意見を聞く | アバターが結果の文脈を踏まえて応答 |
+
+> **Fire-and-forget**: 長時間のタスクでもタイムアウトで失敗しません。サーバーは POST の受け渡しを確認してすぐに戻り、結果は非同期プッシュで届きます。Claude Code は必要なだけ時間をかけられます。
+
+**意見の検出**は4言語に対応しています — 結果についてアバターの考えを聞いてみてください:
+- 🇰🇷 "어떻게 생각해?" · 🇺🇸 "What do you think?" · 🇯🇵 "どう思う?" · 🇨🇳 "你觉得怎么样?"
+
+### プライバシー
+
+> **Code Assist モードでは、会話はアバターの記憶に保存されません。**
+
+Code Assist の結果はアバターの Franchise Memory ではなく、別の Code Panel データベースに保存されます。これは機密データ向けのパターン既定値 `save_franchise_memory = false` で制御されます。コードの会話がアバターの性格に影響したり、長期記憶の一部になったりすることはありません。
+
+| | 通常モード | Code Assist モード |
+|---|---|---|
+| 会話ログ | 保存(性格を形成) | 保存しない |
+| 感情トラッキング | 有効 | 無効 |
+| Franchise Memory | 時間とともに蓄積 | 無効(`save_franchise_memory = false`) |
+| コード結果 | — | Code Panel のみ(別ストレージ) |
+
+通常モードに戻ると、アバターは前回の続きから会話します。
+
+## TTS 向けの応答分割
+
+Claude Code が表・記号・書式付きデータを含む結果を返すと、応答は2つの流れに分かれます:
+
+```mermaid
+flowchart LR
+    CC[Claude Code] -->|reply text + tts_text| CH[Channel Server]
+    CH --> NV[NVatar Server]
+    NV -->|tts_text| B[Avatar Bubbles + TTS]
+    NV -->|raw text| P[Code Panel]
+```
+
+| フィールド | 用途 | 例 |
+|-----------|------|-----|
+| `text` | 表・コード・記号を含む生の応答 | `\| Plan \| Price \| ...` |
+| `tts_text` | アバターが話す自然な文 | 「スターターは月5ドルで…」 |
+
+アバターは TTS 向けの文を話し、Code Panel は生データをすべて表示します。`tts_text` がなければ、従来どおり生テキストを読み上げます(後方互換)。
+
+## サーバープッシュ(ダイレクトプッシュ)
+
+Claude Code は**事前の依頼なしに**アバターへ結果を送れます。ターミナルで直接作業し、その結果をアバターに知らせてほしいとき:
+
+```mermaid
+sequenceDiagram
+    participant T as Terminal (direct)
+    participant CC as Claude Code
+    participant S as NVatar Server
+    participant A as Avatar
+
+    T->>CC: Direct work (no avatar request)
+    CC->>S: reply(avatar_id, text)
+    Note over S: No pending callback
+    S->>A: WebSocket push (direct)
+    A->>A: Speaks result
+```
+
+ターミナルで直接作業しながら、アバターが状況を把握して結果をリアルタイムで知らせる、ハイブリッドな作業スタイルが可能です。
+
 ## アーキテクチャ
+
+Code Assist は `CodeAssistPattern` として実装されています — [NVatar SDK](https://github.com/nskit-io/nvatar-sdk) のパターンシステムにあるプラグイン型の振る舞いの1つです。SDK の BehaviorPattern Registry がモードに応じてメッセージを適切なパターンへ振り分けるため、Code Assist はアバターの性格エンジンから独立して動きます。
 
 ```mermaid
 graph TB
     subgraph Browser
-        L[Lobby - index.html]
-        R[Room - code-assist.html]
-        CP[Code Assist Panel]
+        L[Lobby]
+        R[Avatar Room]
+        CP[Code Panel]
     end
 
     subgraph NVatar Server
-        WS[WebSocket Handler]
-        GM[Gemma AI - Character]
-        SDK[SDK Mode Router]
+        WS[WebSocket]
+        GM[Gemma AI]
+        SDK[Assist Router]
     end
 
-    subgraph Channel
-        BUN[Bun MCP Server :8789]
-        HB[Heartbeat 30s]
-    end
-
-    subgraph Local
-        CC[Claude Code Session]
+    subgraph Your Machine
+        BUN[Channel Server]
+        CC[Claude Code]
         FS[Your Codebase]
     end
 
@@ -154,182 +204,153 @@ graph TB
     R <-->|WebSocket| WS
     WS -->|Assist OFF| GM
     WS -->|Assist ON| SDK
-    SDK -->|HTTP POST| BUN
-    BUN <-->|MCP stdio| CC
+    SDK --> BUN
+    BUN <-->|MCP| CC
     CC -->|Read/Write| FS
-    CC -->|reply tool| BUN
-    BUN -->|callback| SDK
-    SDK -->|bubble| R
-    SDK -->|code_result| CP
-    HB -->|Re-register| SDK
+    CC --> BUN
+    BUN --> SDK
+    SDK --> R
+    SDK --> CP
 ```
 
-## 2つのモード
+チャンネルの HTTP リスナーは `127.0.0.1:8789` にバインドされるため、NVatar サーバーがそのアドレスに到達できる必要があります(同じマシンで運用するか、自分で管理するトンネルを経由してください)。
 
-### 通常モード（デフォルト）
+## Claude Code チャンネル
 
-アバターはGemmaベースの対話型AIコンパニオンです。固有の性格、記憶、感情を持ち、TTSで音声会話をします。日常の会話は自動保存され、アバターは時間の経過とともに成長していきます。
+このプロジェクトは **Claude Code Channels** を使います — 外部アプリが Claude Code と通信できるようにする、MCP ベースのプラグインシステムです。
 
-通常モードでコード作業をリクエストすると、アバターが案内します:
-> "コード作業は Assist ボタンを押してアシストモードをオンにしてくださいね！"
-
-### コードアシストモード（Assistトグル）
-
-メッセージはClaude Codeに非同期転送されます。**タイムアウトなし** — アバターが受付を即座に通知し、結果が届くと自動配信します:
-
-| 操作 | 動作 |
-|------|------|
-| ユーザーのメッセージ | Claude Codeへ転送 → アバターが「Claudeに作業をお願いしたよ！」と通知 |
-| 進捗アップデート | アバターがリアルタイムで音声伝達 |
-| 最終結果 | アバター音声伝達 + Code Panel表示 |
-| ダイレクトプッシュ | Claude Codeがアバターのリクエストなしでも結果送信可能 |
-| アバターへの意見リクエスト | Gemmaが結果コンテキストとともに応答 |
-
-> **Fire-and-forget**: 長時間のタスクでもタイムアウト失敗は発生しません。サーバーはPOST配信確認後に即座に戻り、結果は非同期pushで到着します。
-
-### プライバシーとデータ
-
-> **重要:** Code Assistモードでは、会話内容はアバターのメモリに保存されません。
-
-| | 通常モード | Code Assistモード |
-|---|---|---|
-| **会話ログ** | アバターメモリに保存 | 保存しない |
-| **感情トラッキング** | 有効（喜び、悲しみなど） | 無効 |
-| **性格の発展** | 有効（時間とともに変化） | 無効 |
-| **コード結果** | 該当なし | Code Panel + SQLiteに別途保存 |
-
-日常会話を通じてアバターの性格と感情が発展します。Code Assistの会話は完全に隔離されており、アバターのキャラクターや記憶に影響を与えません。通常モードに戻ると、以前の日常会話から続けて会話できます。
-
-**意見検出**は4言語に対応しています:
-- 🇰🇷 "어떻게 생각해?", "네 의견은?"
-- 🇺🇸 "What do you think?", "Your opinion?"
-- 🇯🇵 "どう思う?", "意見は?"
-- 🇨🇳 "你觉得怎么样?", "你的意见?"
-
-## URLパラメータ
-
-| パラメータ | デフォルト | 説明 |
-|-----------|-----------|------|
-| `avatar` | - | アバターID |
-| `vrm` | Victoria_Rubin | VRMモデルURL |
-| `channel` | - | Channel UUID |
-| `server` | `https://nvatar.nskit.io` | NVatarサーバーURL |
-| `assist` | `0` | アシストモード自動有効化（`1` = ON） |
-| `ctx` | `0` | コード会話をアバターメモリに保存 |
-| `wrap` | `1` | レスポンスへのキャラクターラッピング（Gemma） |
-
-## NVatarSDK API
-
-ルームは外部連携用に `window.NVatarSDK` を公開しています:
-
-```javascript
-// Subscribe to code results
-NVatarSDK.onLookupResult = (data) => {
-  console.log(data.query, data.items);
-};
-
-// Read stored results
-NVatarSDK.getLookupResults();    // all results
-NVatarSDK.getUnreadCount();      // unread count
-NVatarSDK.clearLookupResults();  // clear all
+```mermaid
+flowchart LR
+    A[NVatar Room] -->|message| B[Channel Server]
+    B -->|MCP| C[Claude Code]
+    C -->|reply| B
+    B -->|result| A
 ```
 
-## チャネル設定
+`channel/` ディレクトリにすぐ使える MCP サーバーが入っています。開始コマンドを実行すると Claude Code が自動で起動し、チャンネルが読む設定は[チャンネル設定](#チャンネル設定)にまとめてあります。
 
-### 環境変数
+チャンネルサーバーは MCP 通知の配信に自動リトライ(3回、2秒間隔)を備えており、接続が一時的に不安定でもメッセージが Claude Code に届きます。
+
+> Claude Code Channels の詳細は [Claude Code ドキュメント](https://docs.anthropic.com/en/docs/claude-code)を参照してください。
+
+## 信頼性
+
+Code Assist には複数層のリトライとエラー処理があります:
+
+| レイヤー | 動作 |
+|---------|------|
+| **チャンネル → Claude Code** | MCP 通知リトライ(3回、2秒間隔) |
+| **サーバー → チャンネル** | HTTP POST リトライ(2回、2秒間隔) |
+| **配信失敗** | シンプルなエラー吹き出し — アバターは失敗について創作した応答を返さない |
+| **TTS 初期化** | `client_ready` ハンドシェイクで TTS 初期化後にアバターが話す |
+
+リトライ後も Claude Code にメッセージが届かない場合、ローカル AI(Gemma)に回さず、シンプルなエラーメッセージを表示します。コードの指示にアバターが答えを「でっち上げる」混乱を防ぐためです。
+
+## セキュリティと設定
+
+### ホストされたデモと自前のサーバー
+
+- GitHub Pages 上のページは、プロジェクトのデモサーバー(`nvatar.nskit.io`、現在一時停止中)を呼ぶよう固定されています。**デモ専用であり、プロダクション用のエンドポイントではありません。**機密のコードやデータを送らないでください。
+- ページにはサーバー URL を切り替える手段(`server` URL パラメータ)がありません。ロビー(`index.html`)はデモサーバーに固定され(`SERVER` / `RES_SERVER` 定数)、ルームのモジュール(`js/room/state.js`)は `*.github.io` ではデモサーバーを、それ以外のホストでは自身の origin を使います。自前の NVatar サーバーを使うには、ファイルをそのサーバーから配信し、`index.html` の2つの定数を変更してください。
+- NVatar サーバー API には独自の**ユーザー認証**も**アバター所有権の確認**もありません。連携する側がすべてのエンドポイントの前段に認証を置き、呼び出し元が指定したアバター(`avatar` uid)とチャンネル UUID の所有者であることをサーバー側で確認する必要があります。
+
+### チャンネル設定
+
+チャンネルは次の環境変数(または `~/.claude/channels/nvatar/.env` の行)を読みます:
 
 | 変数 | デフォルト | 説明 |
 |------|-----------|------|
-設定が必要な変数は`NVATAR_CHANNEL_UUID`のみです。ロビーで生成したUUIDと一致させてください。
+| `NVATAR_CHANNEL_UUID` | ランダム | ロビーで生成した UUID と一致させる |
+| `NVATAR_SERVER_URL` | なし(プレースホルダー) | 必須。使用する NVatar サーバー。ないと登録に失敗 |
+| `NVATAR_CHANNEL_SECRET` | 起動ごとにランダム | サーバーとチャンネル間の共有シークレット。再起動のたびに変わらないよう固定値を推奨 |
+| `NVATAR_CHANNEL_PORT` | `8789` | ローカル HTTP ポート(`127.0.0.1` にバインド) |
+| `NVATAR_STATE_DIR` | `~/.claude/channels/nvatar` | `.env` ファイルを読む場所 |
 
-```bash
-NVATAR_CHANNEL_UUID=<your-uuid> claude --dangerously-load-development-channels server:nvatar
-```
+### チャンネル接続の認証方式
 
-その他の設定（サーバーURL、ポート、認証）は自動的に処理されます。
+1. チャンネルは起動時に NVatar サーバーへ登録し(`/api/v1/channel/register`)、チャンネルシークレットを送ります(`X-Channel-Token` ヘッダーとリクエスト本文)。以後30秒ごとにハートビートとして再登録します。
+2. サーバーがチャンネルへメッセージを中継するとき(`127.0.0.1:8789` の `POST /message`)、`token` フィールドにそのシークレットを含める必要があります。一致しなければ **401** で拒否されます。
+3. チャンネルからサーバーへのコールバック(`/api/v1/channel/callback`)にも同じ `X-Channel-Token` ヘッダーが付きます。
 
-### ハートビート
+このシークレットが守るのはサーバーとチャンネル間の接続だけです。ブラウザーのユーザーを認証せず、アバターの所有権も証明しません — それは連携する側の役割です(上記参照)。
 
-チャネルサーバーは30秒ごとにNVatarサーバーへ再登録します。これは以下を意味します:
-- NVatarサーバーが再起動しても、30秒以内に自動再接続されます
-- 手動での再登録は不要です
+### CORS(ページとサーバーの origin が異なる場合のみ)
 
-### セルフホスト時のCORS設定
-
-GitHub Pagesでロビーをホストしつつ独自のNVatarサーバーを使用する場合:
+自前のサーバーからページを配信すれば同一 origin なので CORS は不要です。クライアントを別 origin のサーバーを呼ぶように変更する場合は、自分の origin だけを明示的に許可してください — `*` は不可:
 
 ```python
 # FastAPI
 app.add_middleware(CORSMiddleware,
-    allow_origins=["https://your-username.github.io"],
-    allow_methods=["*"], allow_headers=["*"])
+    allow_origins=["https://your-username.github.io"],  # explicit allowlist, never "*"
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "Authorization"])
 ```
+
+## サービスと制限
+
+| サービス | 備考 |
+|---------|------|
+| **NVatar サーバー** | ホストされたデモサーバーはメンテナンスのため一時停止中で、デモであってプロダクション用のエンドポイントではありません。自前で運用するサーバーには前段に認証と所有権確認が必要です。 |
+| **TTS(音声)** | NVatar サーバー経由のクラウド TTS。TTS が使えないときはテキストの吹き出しで動作します。 |
+| **STT(マイク入力)** | 自前の STT エンドポイントが必要: `window.NVATAR_WHISPER_URL` を設定(例: `https://your-stt.example.com/api/v1/transcribe`)。未設定ならマイクは無効、テキスト入力は常に可能。 |
+
+> 専用リソースが必要な企業導入は[お問い合わせください](mailto:nskit@nskit.io)。
+
+## トラブルシューティング
+
+| 症状 | 対処 |
+|------|------|
+| チャンネルへの配信が 401 で失敗 | サーバーが保持しているこのチャンネルのシークレットが、チャンネルの現在のシークレットと一致していません(例: チャンネルが新しいランダムのシークレットで再起動し、まだ再登録されていない)。チャンネルを再起動し(起動時と30秒ごとに再登録)、`NVATAR_CHANNEL_SECRET` を固定値にしてください |
+| チャンネルのログ: "NVATAR_SERVER_URL not set" | `NVATAR_SERVER_URL` を NVatar サーバーのアドレスに設定し、チャンネルを再起動してください |
+| アバターが指示を中継しない | **⚡ Assist** をクリックして Code Assist モードをオンにしてください |
+| "서버 연결 대기 중"(サーバー接続待ち) | ページを再読み込みしてください — サーバーが読み込み中の可能性があります |
+| 再読み込み後にコードパネルが空 | 同じ Channel UUID を使っているか確認してください |
+| TTS が再生されない | ブラウザーの自動再生ポリシー — 先にページを操作してください |
+| チャンネルがつながらない | 同じ UUID と正しい `NVATAR_SERVER_URL` で Claude Code を再起動してください |
+| 話すときアバターが中央に戻らない | 修正済み — すべての吹き出しイベントで `returnToCenter()` が呼ばれます |
+| TTS の準備前にアバターが話す | 修正済み — `client_ready` ハンドシェイクでシーンの読み込み後まで挨拶を遅らせます |
+| メッセージ配信の失敗が気づかれない | サーバーが2秒間隔で2回リトライし、最終的に失敗したらエラーを表示します |
 
 ## プロジェクト構成
 
 ```
 nvatar-code-assist/
-├── index.html              # Lobby -- アバター選択 + サーバー設定
-├── code-assist.html        # Room -- 3Dアバター + チャット + コードパネル
-├── js/room/                # Roomモジュール（16ファイル）
-│   ├── state.js            # 共有ステート + API_BASE解決
-│   ├── main-assist.js      # コードアシストトグル + SDK接続
-│   ├── chat.js             # WebSocketチャット + コードパネル
-│   ├── lookup.js           # NVatarSDK公開API
-│   ├── scene.js            # Three.js 3Dシーン
-│   ├── animation.js        # Mixamo VRMアニメーション
-│   ├── i18n.js             # 4言語UI翻訳
-│   ├── tts.js / stt.js     # 音声（クラウドTTS, Whisper STT）
-│   └── ...                 # mood, roaming, bubble, mobile, walk
+├── index.html              # Lobby — アバター選択
+├── code-assist.html        # Room — 3Dアバター + チャット + コードパネル
+├── js/room/                # Room モジュール(16ファイル)
+│   ├── main-assist.js      # コードアシストのトグル処理
+│   ├── chat.js             # WebSocket + コードパネル
+│   ├── i18n.js             # 4言語の翻訳
+│   └── ...                 # scene, animation, tts, stt, mood など
 ├── vrm/
-│   ├── models.json         # 静的モデルリスト（オフラインフォールバック）
-│   └── thumbnails/         # VRMアバターサムネイル（256x256）
+│   ├── models.json         # アバターモデル一覧
+│   └── thumbnails/         # アバターのサムネイル
 ├── channel/
-│   ├── server.ts           # MCPチャネルサーバー（Bun）
+│   ├── server.ts           # MCP チャンネルサーバー(Bun)
 │   └── package.json
-└── docs/
-    ├── README_KO.md
-    ├── README_JA.md
-    └── README_ZH.md
+└── docs/                   # 翻訳版 README(KO, JA, ZH)
 ```
 
-## 信頼性
+## NVatarSDK API
 
-Code Assistには複数層のリトライとエラーハンドリングが組み込まれています:
+ルームと連携する開発者向け:
 
-| レイヤー | 動作 |
-|---------|------|
-| **チャネル → Claude Code** | MCP通知リトライ（3回、2秒間隔） |
-| **サーバー → チャネル** | HTTP POSTリトライ（2回、2秒間隔） |
-| **配信失敗** | シンプルなエラー吹き出しを表示 — アバターが失敗について創作的な応答を生成しない |
-| **TTS初期化** | `client_ready`ハンドシェイクでTTS初期化後にアバターが発話 |
+```javascript
+// Subscribe to code results
+NVatarSDK.onLookupResult = (data) => { ... };
 
-リトライ後もClaude Codeにメッセージが届かない場合、ローカルAI（Gemma）にルーティングせず、シンプルなエラーメッセージを表示します。これにより、アバターがコード指示に対してでたらめな回答を「でっち上げる」混乱を防ぎます。
+// Read stored results
+NVatarSDK.getLookupResults();
+NVatarSDK.getUnreadCount();
+NVatarSDK.clearLookupResults();
+```
 
-## サービス制限
+## 関連プロジェクト
 
-| サービス | エンドポイント | 備考 |
-|---------|--------------|------|
-| **NVatarサーバー** | NVatarサーバーURL | 公開デモサーバーはメンテナンスのため一時停止中。自前で運用するサーバーは前段に認証が必要です。 |
-| **TTS（音声）** | NVatarサーバー経由のクラウドTTS | TTS不可時はテキスト吹き出しで正常動作。 |
-| **STT（音声認識）** | 自前で用意するSTTエンドポイント | `window.NVATAR_WHISPER_URL` で指定（例: `https://your-stt.example.com/api/v1/transcribe`）。未指定時はマイク無効、テキスト入力は常に利用可能。 |
-
-- TTSが使えない場合も、チャットとコードリレーはテキスト吹き出しで正常に動作します。
-- 専用リソースが必要な企業導入は[お問い合わせください](mailto:nskit@nskit.io)。
-
-## トラブルシューティング
-
-| 症状 | 原因 | 対処法 |
-|------|------|--------|
-| "채널 전달 실패: 401" | トークン不一致 | 最新コードでチャネルを再起動してください |
-| アバターがコマンドを転送しない | Assistトグルがオフ | Assistボタンをクリックしてください |
-| "서버 연결 대기 중" | サーバーURLが不正 | ロビーのNVatar Serverフィールドを確認してください |
-| リロード後にコードパネルが空 | Channel UUIDが異なる | チャネルプロセスと同じUUIDを使用してください |
-| リロード後にTTSが再生されない | ブラウザの自動再生ポリシー | 画面内をクリックしてからリロードしてください |
-| サーバー再起動後にチャネルが切断 | メモリ内の登録情報がクリア | ハートビートが30秒以内に自動復旧します |
-| 発話時にアバターが中央に移動しない | 修正済み — すべての吹き出しイベントで`returnToCenter()`が呼び出されます |
-| TTS準備前にアバターが話す | 修正済み — `client_ready`ハンドシェイクでシーン読み込み後に挨拶を遅延します |
-| メッセージ配信が無通知で失敗する | サーバーが2秒間隔で2回リトライし、最終失敗時にエラーを表示します |
+| プロジェクト | 説明 |
+|------------|------|
+| [NVatar Demo](https://github.com/nskit-io/nvatar-demo) | AI 3Dアバターチャットプラットフォーム — アバターのランタイム |
+| [NVatar SDK](https://github.com/nskit-io/nvatar-sdk) | BehaviorPattern SDK — プラグイン型アバターサービスの開発 |
 
 ## ライセンス
 
@@ -337,4 +358,4 @@ CC BY-NC-SA 4.0 — [LICENSE](../LICENSE) を参照
 
 ---
 
-Built with [NVatar](https://github.com/nskit-io/nvatar-demo) -- AI 3D Avatar Chat Platform
+Built with [NVatar](https://github.com/nskit-io/nvatar-demo) and [NVatar SDK](https://github.com/nskit-io/nvatar-sdk) — AI 3D Avatar Chat Platform
